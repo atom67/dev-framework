@@ -3,8 +3,9 @@
 One-time program of work: extract the reusable process layer from Main OS into an
 installable package, so the next project does not repeat the refactor that produced it.
 
-Archive this file to `docs/archive/` when every portion is accepted. It is the single
-living document for this work; nothing else tracks it.
+**Finished 2026-08-31 and archived.** Every portion is done; the package is published
+as the private repository `atom67/dev-framework`. Kept for the record of what was
+decided and why, not as a living document.
 
 **Scope decided with the operator (2026-08-31):**
 
@@ -50,5 +51,5 @@ One portion = one thing the operator can accept or send back.
 - [x] One runnable check: `-SelfTest` that fails if that logic breaks.
 
 ### 7. Publish
-- [ ] `README.md`: what this is, how to install, what is inside.
-- [ ] Commit, create the private GitHub repository, push.
+- [x] `README.md`: what this is, how to install, what is inside.
+- [x] Commit, create the private GitHub repository, push.
