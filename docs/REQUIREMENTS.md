@@ -13,6 +13,9 @@
 | FR-009 | Reviewed Main OS lessons have an auditable transfer map, applicability, regression criteria and explicit exclusions. | 23 rows / eight recipes verified; not an exhaustive history audit |
 | FR-010 | A disposable live fresh-session handoff validates recovery of decisions, evidence, next work and authority without prior chat. | fixture verified; native pilot BLOCKED, docs/evidence/HANDOFF_2026-08-31.md |
 | FR-011 | A project receives a use-case catalogue, copy templates, composition rules and doctor checks for stable UC/SET IDs, Test fields and traceability. | implemented locally; consumer fill-in still required |
+| FR-012 | Work that will not fit in one iteration has a living checklist; every operator reply ends with that list, completed items struck through, until it is empty. | implemented in protocol |
+| FR-013 | Planning prefers larger iterations that rest on documentation, code analysis and closing tests; the overlay is slower and more predictable, not a licence for tiny untestable slices. | implemented in protocol |
+| FR-014 | Independent tasks that do not share an unfinished output run in parallel subagents when the host provides them; serializing them is a planning defect. | implemented in protocol |
 | NFR-001 | Tooling uses Python 3.10+ standard library; PowerShell remains an optional entry point. | verified locally on Python 3.11.15 / PowerShell 7.6.4 |
 | NFR-002 | Automated tests use isolated temporary repositories and no production credentials. | verified |
 | NFR-003 | No installation, check or finish implicitly commits, pushes, deploys or restarts an app. | verified; configured commands must be reviewed |

@@ -59,15 +59,35 @@ trigger. Never trade away data integrity, security, accessibility or execution c
 
 ## 3. Planning and documentation
 
-Before the first code change in multi-session work, create one checklist from
-[the template](docs/CHECKLIST_TEMPLATE.md). Break it into independently verifiable portions.
+This package is a heavy overlay of documentation, analysis and tests. It is meant to
+raise the quality of development, of reading a change, and of understanding existing
+code. Work is slower and the outcome is more predictable. Plan for that: prefer
+**larger iterations** that rest on the catalogue, architecture and known errors, close
+with isolated tests, and are independently acceptable. Do not slice a well-understood
+path into many engineering chores; the overlay already pays for a bigger step.
+
+Independent work that can run at the same time **must** run in parallel subagents when
+the host provides them. Do not serialize reads, searches, reviews or implementations
+that do not share an unfinished output. Give each subagent a closed task, the same
+authority limits as this protocol, and no commit/push/deploy. The parent merges
+results, checks contradictions, and remains accountable to the operator. Sequential
+execution of independent work is a planning defect, not caution.
+
+If the work still does not fit in **one iteration**, write one checklist from
+[the template](docs/CHECKLIST_TEMPLATE.md) **before the first code change**. Keep it
+the single living plan. At the **end of every reply to the operator**, copy that
+checklist and strike through (`~~done~~`) what is complete. Repeat until every item
+is struck. Do not ask the operator to open the file; the copy in the reply is how they
+see progress. The file remains the source of truth between sessions.
+
 A new or changed value path is a case in [use cases](docs/USE_CASES.md), copied from
 [the case template](docs/USE_CASE_TEMPLATE.md). A shipped subset of the catalogue uses
 [the slice template](docs/USE_CASES_SLICE_TEMPLATE.md); it maps to live `UC-###` IDs and
 does not renumber them.
-Reconcile it before and after each portion. Discovered work enters the checklist before
-implementation; a material scope change needs agreement. A checkmark requires evidence.
-Keep the checklist active while awaiting acceptance; archive it after completion/acceptance.
+Reconcile the checklist before and after each iteration. Discovered work enters it
+before implementation; a material scope change needs agreement. An item is done only
+after it is built and verified. Keep the checklist active while awaiting acceptance;
+archive it after completion/acceptance.
 
 | Source of truth | Maintain when |
 |---|---|

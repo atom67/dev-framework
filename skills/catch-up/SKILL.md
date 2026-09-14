@@ -39,11 +39,16 @@ Note the scale target in `PROJECT.md`. Section 4 of this skill depends on it.
 
 ## 1. This is a programme of work — make the checklist first
 
-On anything larger than a few hundred files, reconstruction spans sessions. Section 3 of
-`AGENTS.md` therefore applies to the reconstruction itself: copy
-`docs/CHECKLIST_TEMPLATE.md` to `docs/CATCH_UP.md` **before the first edit**, with one
-portion per document plus one per audit. Reconcile at the start and end of every portion.
-When it is finished, move the file to `docs/archive/` in full.
+On anything larger than a few hundred files, reconstruction will not fit in one
+iteration. Section 3 of `AGENTS.md` therefore applies to the reconstruction itself:
+copy `docs/CHECKLIST_TEMPLATE.md` to `docs/CATCH_UP.md` **before the first edit**.
+Prefer a few large iterations (inventory; reconstruct architecture, requirements and
+use cases together; remaining docs; cost and secret audits) each closed with doctor
+or the relevant audit plant, not one file per tiny portion. Independent reconstruction
+or audit work that does not share an unfinished file **must** run in parallel subagents
+when the host provides them. At the **end of every
+reply to the operator**, copy that checklist and strike through what is done, until
+every item is struck. When it is finished, move the file to `docs/archive/` in full.
 
 Doing this to yourself first is also the honest test of whether the rule is workable.
 

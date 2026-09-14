@@ -28,7 +28,8 @@ project. If you cannot say what a rule is protecting, you will not enforce it.
 
 ## 1. Survey the target
 
-Before writing anything, establish:
+Before writing anything, establish (run independent survey questions in parallel
+subagents when the host provides them):
 
 - Is the target empty, or a repository with existing content and history?
 - What is the language, build system, and entry point?

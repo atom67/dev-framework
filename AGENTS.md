@@ -7,6 +7,9 @@ The template directory is the product being authored, not this repository's live
 - Preserve unrelated work. Use the current branch; do not create/switch branches silently.
 - Reviews are read-only unless implementation is requested. Do not run or alter Main OS.
 - Multi-step changes have a checklist before code edits; update its evidence and Handoff.
+  Prefer larger iterations that close with tests. Copy the live checklist at the end of
+  every operator reply, striking through completed items, until it is empty.
+  Independent work runs in parallel subagents when the host provides them.
 - Keep shared process rules in template/AGENTS.md, facts in template/PROJECT.md, and the
   provider adapter thin. LESSONS.md at the root is canonical and installed by the script.
 - Test risky behaviour with isolated fixtures, negative cases and actual Git index blobs.

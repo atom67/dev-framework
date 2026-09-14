@@ -69,6 +69,20 @@ from the traceability table, SET Enables ranges that name unwritten cases, and
 Preconditions that name a SET row that does not exist. It does not judge whether
 Flow named the correct store. This package's own catalogue is [docs/USE_CASES.md](docs/USE_CASES.md).
 
+## Pace
+
+The overlay is documentation, analysis and tests. Development is slower and the
+result is more predictable. Plan larger iterations that use that overlay, instead of
+many small engineering chores. If the work still will not fit in one iteration, write
+a checklist before the first code change and copy it at the **end of every reply to
+the operator**, striking through what is done, until the list is empty. The file in
+`docs/` remains the source of truth between sessions.
+
+Independent work that does not wait on another unfinished output **must** run in
+parallel subagents when the host provides them. Serializing that work is a planning
+defect. The parent merges and stays accountable; subagents do not commit, push or
+deploy.
+
 ## Finish setup (the implementing agent does this)
 
 1. Fill `TODO(project):` facts in PROJECT.md and docs/ARCHITECTURE.md. Record N/A explicitly
