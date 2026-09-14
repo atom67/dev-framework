@@ -35,7 +35,7 @@ filled. A plausible guess never gets checked.
 `import-dev-framework` first if they are not. Read `AGENTS.md` and this repository's
 `LESSONS.md` before starting; you are about to apply rules whose reasons matter.
 
-Note the scale target in `AGENTS.md` section 5. Section 4 of this skill depends on it.
+Note the scale target in `PROJECT.md`. Section 4 of this skill depends on it.
 
 ## 1. This is a programme of work — make the checklist first
 
@@ -53,7 +53,9 @@ Establish the ground truth before writing a line:
 
 - Languages, entry points, build and dependency manifests, and what the artefacts are.
 - Module and directory layout, and which parts are actually loaded at runtime versus dead.
-- Test suites: what exists, whether it passes today, and what it covers.
+- Test suites: what exists, whether it passes today, and what it covers. Those names
+  are what later become `Test: covered` on a use case. A suite that does not isolate
+  from real data/services is not coverage; record it as unconfirmed.
 - Git history: the shape of the work, and — valuable — every commit whose message says
   `fix`. Those are the known errors, already written down by the person who hit them.
 - An issue tracker, if there is one.
@@ -85,12 +87,26 @@ X and the README promises Y, the requirement is X — and Y goes to the operator
 question, because you have just found either a bug or a stale README.
 
 **`docs/USE_CASES.md`** — after architecture and requirements, because a case names
-components and `FR-###` by reference. Copy further cases from `docs/USE_CASE_TEMPLATE.md`.
-Every user-visible or automatic benefit path gets a stable `UC-###`, a trigger
-(Interactive or Automatic), SET preconditions, a Flow that names the live store when
-more than one exists, an Outcome, and exactly one Test status (`covered` / `gap` /
-`NFV`). Do not pad SET Enables ranges. An edition/public cut uses
-`docs/USE_CASES_SLICE_TEMPLATE.md` and does not renumber living cases.
+components and `FR-###` by reference. Replace the example SET/UC rows; copy further
+cases from `docs/USE_CASE_TEMPLATE.md`. Every user-visible or automatic benefit path
+gets a stable `UC-###`, a trigger (Interactive or Automatic), SET preconditions, a
+Flow that names the live store when more than one exists, an Outcome, and exactly one
+`Test` status:
+- `covered` — only if inventory found a real isolated test (or a named manual
+  regression case) that guards this path. Link it. A green suite that never touches
+  the path is not coverage.
+- `gap` — testable by ordinary functional means, but not yet covered. Also record it
+  in `docs/BACKLOG.md`. This skill does not write the missing test.
+- `NFV` — cannot be a standard automated functional test; row in the NFV register
+  with the reason and how it is actually checked. Never a synonym for "no test yet".
+
+Do not pad SET Enables ranges. An edition/public cut uses
+`docs/USE_CASES_SLICE_TEMPLATE.md` and does not renumber living cases. After the
+catalogue and the other docs in this section are written, run
+`python .devframework/check.py doctor` in the target: duplicate IDs, a heading
+without `Test`, a heading missing from the traceability table, or a SET citation to
+an unwritten case must be fixed before handover. Doctor still does not judge whether
+Flow named the correct store — that stays a review item.
 
 **`docs/KNOWN_ERRORS.md`** — the richest seam in an existing codebase, and the one nobody
 ever writes down. Sources: `TODO`, `FIXME`, `HACK`, `XXX` comments; skipped, disabled, or
@@ -121,8 +137,9 @@ between components. If the truth is "one person does it by hand and remembers th
 write that down as the procedure and mark it unconfirmed. A wrong release checklist is
 worse than an absent one.
 
-**`CLAUDE.md`** — reconcile it against everything above. It usually predates the
-reconstruction and is the file most likely to have drifted.
+**`PROJECT.md` / `CLAUDE.md`** — reconcile facts against everything above. `CLAUDE.md`
+is the adapter and must not grow a second copy of the rules. `PROJECT.md` is the file
+most likely to still carry `TODO(project):` from import.
 
 ## 4. The cost audit — the part that pays for the exercise
 
@@ -176,7 +193,9 @@ it is a decoration that manufactures confidence, which is worse than having noth
 Before reporting either result, plant the thing it is supposed to catch and confirm it
 fails with the exact expected value; then restore and confirm it passes. Plant a fake
 credential in a tracked file for the secret pass. Plant an uncommented timer for the cost
-pass.
+pass. For the catalogue contract, plant a SET Enables range that names an unwritten
+`UC-###` and confirm `python .devframework/check.py doctor` fails on that citation;
+then restore.
 
 This is not theoretical. Planting a password in the source project found two real defects
 in checks that had been running green for months: a pattern that required the keyword at
@@ -189,7 +208,9 @@ reading the code.
 
 To a product owner, in numbers, with no instruction to open a file or run a script:
 
-- How many components, requirements, and known errors were reconstructed, and from what.
+- How many components, requirements, use cases, and known errors were reconstructed,
+  and from what. For use cases: how many `covered` / `gap` / `NFV`, and that doctor
+  accepted the catalogue contract (or what it rejected).
 - The cost audit: how many repeating sites were found, and the total load at the scale
   target. Name every ceiling in plain language — which limit, whose limit, at what point
   it is reached, and what the options are. These are product decisions and they are the
