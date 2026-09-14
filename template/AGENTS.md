@@ -1,286 +1,158 @@
 # Agent Operating Protocol — {{PROJECT_NAME}}
 
-The working agreement between the operator and any AI coding agent on this repository.
-Read at the start of every session, before planning, before code, before build or run.
+This is the provider-neutral process contract. Project facts belong in [PROJECT.md](PROJECT.md),
+not in provider adapters. Framework version and installed baselines are recorded in
+`.devframework/manifest.json`. Instructions guide an agent; tests and permission controls
+provide separate enforcement. Never treat a document as permission to exceed the request.
 
-**Division of files.** Process rules live here. Project facts — stack, layout, build
-commands, data locations — live in `CLAUDE.md`. A rule is stated in exactly one place.
-Duplicated rules drift, and a drifted rule is worse than a missing one: the missing one
-sends you to the code, the drifted one confidently lies.
+## 0. Session start and handoff
 
----
+1. Read this file and [PROJECT.md](PROJECT.md), including the selected profile.
+2. Read [known errors](docs/KNOWN_ERRORS.md) relevant to the task before diagnosing it.
+3. Read [requirements](docs/REQUIREMENTS.md) and [backlog](docs/BACKLOG.md) before planning.
+4. Follow the backlog link to the active checklist. Read its Handoff section: decisions,
+   actual verification, uncommitted work, limitations and next step. Check git status.
+5. For data or architecture work read [architecture](docs/ARCHITECTURE.md) and the relevant
+   [pattern recipe](.devframework/patterns/README.md). For a value path (interactive or
+   automatic) also read [use cases](docs/USE_CASES.md). For behaviour changes also read the
+   [regression plan](docs/REGRESSION_TEST.md); for an authorized release read [release](docs/RELEASE.md).
+6. On first use read [lessons](.devframework/LESSONS.md). Later follow relevant incident
+   links and the [transfer map](.devframework/KNOWLEDGE_MAP.md). Check for scoped
+   instructions without loading every archive.
 
-## 0. Start of session
+Do not rely on a provider's private memory or prior chat. Persist agreed decisions in
+the appropriate document and handoff evidence in the active checklist, not a second plan.
+Missing or contradictory context: inspect code and report uncertainty; do not invent it.
+Provider loading and an engineer-run fresh-session test: [agents](.devframework/AGENTS_GUIDE.md).
 
-1. This file.
-2. `docs/KNOWN_ERRORS.md` — before "fixing" anything or explaining odd behaviour, check
-   whether it is already recorded, with a workaround.
-3. `docs/REQUIREMENTS.md` — numbered requirements and product principles.
-4. `docs/BACKLOG.md` — the current queue, priorities, and already-agreed scope.
-5. `docs/ARCHITECTURE.md` — if the task touches data schema, new services, or data flow.
-6. `docs/REGRESSION_TEST.md` — if the task changes existing behaviour or bumps a version.
+## 1. Authority and working agreement
 
-Then run `ls *.md docs/*.md` and confirm no new root-level guide has appeared that this
-list does not mention. Guides nobody is told to read stop being true within weeks.
+- Review/explain/diagnose: read-only by default. Isolated diagnostic fixtures are allowed;
+  changing source, live data, services or remote state needs implementation authorization.
+- Implement: make the requested changes, preserve unrelated edits, verify affected paths.
+  Before running commands inspect and state the branch, outputs and side effects.
+- Build is not run; run is not deploy. Never stop or restart the user's working app,
+  upload, publish or change production solely because a build succeeded.
+- Use the existing branch unless the operator or selected project workflow requests a
+  branch. Do not switch, merge, reset or rewrite history silently.
+- No commit or push before acceptance unless explicitly authorized. Never bypass hooks
+  or signing to obtain a green result. Stage only task-owned changes when authorized.
+- Select desktop/service specifics in PROJECT.md. A profile cannot broaden permissions.
+- Clean only validated task-owned staging paths. Keep a documented rollback set of release
+  artifacts with a retention limit; versioned releases are not inherently waste.
 
----
+Commit format: `<type>: <description>`; types feat, fix, refactor, docs, test, chore, perf, ci.
 
-## 1. Build the smallest thing that works
+## 2. Simplicity and testability
 
-Before writing code, stop at the first rung that holds:
+Use the standard library, platform or existing dependency when it meets correctness,
+security and maintenance needs. Avoid speculative layers; do not ban an interface or a
+test framework just because there is one production implementation. A boundary around
+files, network, clocks or processes can be necessary to test failure safely.
 
-1. Does this need to exist at all? Speculative need — skip it, say so in one line.
-2. Does the standard library already do it? Use it.
-3. Does a native platform feature cover it? Use it.
-4. Does an already-installed dependency solve it? Use it.
-5. Can it be one line? One line.
-6. Only then: the minimum code that works.
+Prefer cohesive modules and readable functions. File/function length is a review signal,
+not a universal line-count gate; generated code is different from handwritten logic.
+Keep business rules out of UI glue. Read callers and shared consumers when changing a contract.
 
-Rules:
+Record intentional shortcuts with `simplification:`, applicability, ceiling and upgrade
+trigger. Never trade away data integrity, security, accessibility or execution cost.
 
-- No abstraction nobody asked for. No interface with one implementation, no factory for
-  one product, no configuration for a value that never changes.
-- No new dependency for what a few lines can do.
-- Deletion beats addition. Boring beats clever — clever is what someone decodes at 3am.
-- Challenge complex requests: "do you actually need X, or does Y cover it?"
-- Between two equally short standard-library options, take the one that is correct on
-  edge cases. Lazy means writing less code, not picking the flimsier algorithm.
-- Mark deliberate simplifications with a `simplification:` comment. If the shortcut has a
-  known ceiling — a global lock, an O(n^2) scan, a naive heuristic — the comment names the
-  ceiling and the upgrade path.
+## 3. Planning and documentation
 
-**Never simplify away:** input validation at trust boundaries, error handling that
-prevents data loss, security, accessibility basics, **execution cost**, or anything the
-operator explicitly asked for.
+Before the first code change in multi-session work, create one checklist from
+[the template](docs/CHECKLIST_TEMPLATE.md). Break it into independently verifiable portions.
+A new or changed value path is a case in [use cases](docs/USE_CASES.md), copied from
+[the case template](docs/USE_CASE_TEMPLATE.md). A shipped subset of the catalogue uses
+[the slice template](docs/USE_CASES_SLICE_TEMPLATE.md); it maps to live `UC-###` IDs and
+does not renumber them.
+Reconcile it before and after each portion. Discovered work enters the checklist before
+implementation; a material scope change needs agreement. A checkmark requires evidence.
+Keep the checklist active while awaiting acceptance; archive it after completion/acceptance.
 
-Non-trivial logic leaves behind **one runnable check** — the smallest thing that fails if
-the logic breaks. An assert-based self-check, or one small test file. No frameworks, no
-fixtures. Trivial one-liners need no test.
+| Source of truth | Maintain when |
+|---|---|
+| PROJECT.md | stack, file map, selected profile, storage paths or conventions change |
+| .devframework/project.json | executable verification commands change; no secrets here |
+| docs/REQUIREMENTS.md | agreed product behaviour or quality requirement changes; stable FR/NFR IDs |
+| docs/BACKLOG.md | scope/status changes; retain active, agreed next and 3 recently accepted items |
+| docs/KNOWN_ERRORS.md | a defect/limit is found during implementation; record dates, impact and evidence |
+| docs/ARCHITECTURE.md | components, contracts, schema or data flows change |
+| docs/USE_CASES.md | a value path (interactive or automatic) is added, or a case's trigger, flow or outcome changes; stable UC IDs. SET Enables and Preconditions cite only existing IDs (ranges expand). Flow names the live store when more than one exists; do not merge a replica/safety slogan into an API path |
+| docs/REGRESSION_TEST.md | risk scenarios or automated/manual coverage change |
+| docs/INVARIANTS.md | a product guard, entry point or intentional exception changes |
+| docs/RELEASE.md | authorized release, rollback or retention procedure changes |
 
----
+In a read-only review, report new defects instead of silently editing the knowledge base.
+Project-specific decisions stay in project docs; reusable lessons can be proposed upstream
+without sending source code, credentials or private incident data automatically.
 
-## 2. Working agreement
+## 4. Verification and acceptance
 
-- **Branch.** The project runs linearly on `main`. The agent does not create or switch
-  branches without an explicit request. If a branch was created on request, the agent
-  either carries it through to a merge into `main` or stops with a loud warning that a
-  merge is still owed. A working feature must never be left silently in a side branch.
-- **Before any build or run**, state the current branch and the exact path of the binary
-  that is about to be overwritten or launched.
-- **Living build.** The operator uses one specific build output. Do not produce parallel
-  output directories, do not switch build configurations, and do not publish without an
-  explicit request.
-- **Build artifacts.** Always publish to the *same* fixed directory, never to a
-  version-stamped one. Version-stamped publish directories are how dead copies accumulate
-  into gigabytes without anyone noticing. Remove staging directories after a rollout,
-  both locally and on any remote host.
-- **After a successful build, relaunch the application.** The operator may forget to
-  restart, will then test the previous binary, and will report a fixed bug as still open.
-- **Version string.** When the version is bumped, update the string the operator actually
-  sees — window title, CLI banner, about box. It is the only way for them to know which
-  build they are testing.
+Use the project's test framework and isolated fixtures. Cover risk, not an arbitrary
+number of tests: normal behaviour, boundaries, invalid input, interruption and concurrency
+where relevant. Test persistence with temporary stores and crash recovery in child processes.
+Never use a real profile, production database, actual token or live integration as a fixture.
 
-### Commit format
+For a regression, demonstrate the relevant test fails on a synthetic defect/old behaviour
+and passes on the correction. Do this in fixtures or an isolated checkout, not a live app.
+A pure-function test is not evidence for concurrent I/O or crash durability.
 
-```
-<type>: <description>
+After implementation run `python .devframework/check.py finish`. Configure its build,
+test and extra-check commands and counted evidence for this stack. Build all consumers of
+shared code. Missing checks mean NOT READY, not success. Report failures and blocked work
+honestly; do not claim completion or expand authority to make a check pass.
 
-<optional body>
-```
+Finish identifies the verified working-source digest, not a future commit. Before an
+authorized commit run `python .devframework/check.py commit-check`; it rejects nonignored
+untracked files, index/worktree differences and hidden-change flags. Stage only when
+authorized. Later edits invalidate evidence; never bypass checks for convenience.
 
-Types: `feat`, `fix`, `refactor`, `docs`, `test`, `chore`, `perf`, `ci`.
+Register critical behaviour in [invariants](docs/INVARIANTS.md). Test actual entry adapters,
+not just the guard. Growing data paths need representative-volume checks and visible
+latency boundaries; see [performance](.devframework/patterns/bounded-performance.md).
 
-Never bypass hooks (`--no-verify`) or signing without an explicit request. If a hook
-fails, fix the cause.
-
----
-
-## 3. Planning
-
-### A big task becomes a checklist file before the first code edit
-
-If the work does not fit in one session — a multi-step plan, a refactor, a migration, a
-programme of work — it **does not start** without a checklist in the repository.
-
-- The checklist is created **before** the first code edit, as its own file in `docs/`,
-  and is the single living document for that topic.
-- Work is cut into **portions**. One portion = one verifiable thing the operator can
-  accept or send back. Not "a stage that takes a week".
-- Reconcile against the checklist **at the start and at the end of every portion**, not
-  when it happens to come to mind.
-- An item is marked done only after it is built and verified. "Code is written" is not
-  done.
-- Work discovered along the way becomes a checklist item **first**, and is done second.
-  Silently widening scope is not allowed.
-- When the programme is finished, the file moves to `docs/archive/` in full. It does not
-  linger as a second living document.
-
-### Scope
-
-Implementation matches the scope agreed in `docs/BACKLOG.md`. Deviations are agreed with
-the operator, not assumed. After implementation, update the status in the backlog. After
-the operator accepts, trim the backlog to active items, the next agreed items, and the
-three most recently finished features — nothing else.
-
----
-
-## 4. Finishing and acceptance
-
-### Definition of done
-
-Before presenting anything: build every project affected by the change, run the test
-suite unconditionally, and run every automated check the repository has. If something did
-not pass, it cannot be presented — fix it first.
-
-When shared code is touched, build **every** consumer of it, not just the one in front of
-you. That is exactly where a breakage travels unnoticed.
-
-Nothing is pushed to shared storage before the operator says it is accepted. Silently
-pushing unaccepted work means accepting it on their behalf.
-
-### Acceptance is presented to a product owner, not to a developer
-
-The operator is a product owner. They do not read code, do not open files at a line
-number, do not run scripts, and do not reproduce defects by hand. Asking them to is not
-finishing the work — it is handing them its last part.
-
-Acceptance **may not** contain: "open this file near line N", "try making a commit", "run
-this script", "check the log".
-
-Acceptance **must** contain:
-
-- a check *you* performed, with the result quoted — numbers, not "it works";
-- what is visible in the application during ordinary use, where that applies;
-- the product decisions they can make from a plain-language account: frequencies,
-  delays, limits, trade-offs.
-
-If something can only be verified from inside the code, you verify it and present the
-result. The operator makes the decision; they do not perform the check.
-
-### Verify before claiming
-
-Do not report anything you have not checked. And check the check: temporarily plant the
-defect the check is supposed to catch, confirm it fails with the exact expected value,
-restore it, confirm it passes again. A check that has never fired is not a check; it is a
-decoration that manufactures false confidence.
-
-Report outcomes faithfully. If tests fail, say so and quote the output. If a step was
-skipped, say which and why. If part of the scope turns out to be blocked, finish
-everything else in full and state explicitly what was left out and why.
-
----
+Present checks performed and numerical results, visible UX outcomes and product decisions.
+The operator accepts priorities and trade-offs, not debugging chores. Manual engineering
+verification remains the implementer's job; inaccessible checks are explicit limitations.
+Acceptance, commit and deployment are separate events.
 
 ## 5. Execution cost
 
-Any **repeating** work — a timer, a background service, a loop with a pause, a poll — is
-saved only together with a calculation of what it costs. The calculation is written as a
-comment starting with `cost:` next to the site, and it must name the load at
-**{{SCALE_TARGET}}**. Not "the server will cope", but how many requests per day and per
-second.
+Every repeating operation needs a nearby `cost:` explanation: interval, active duration,
+concurrency, retries, daily volume and average/peak rate at the project's target scale.
+Distinguish requests, open connections, bytes, CPU and wakeups; compare third-party limits.
+Numeric scale and the worked example live in [PROJECT.md](PROJECT.md); do not duplicate totals.
 
-```
-// cost: 1 request per minute, 1 440 per day per device;
-//       at {{SCALE_TARGET}} that is 14.4M requests per day, 167 per second.
-```
+For N clients polling every T seconds for H hours/day:
+`requests/day = N * H * 3600 / T`; active average rate is `N / T` before retries.
+Check these assumptions against measured traffic. A comment marker alone proves no maths.
+Prefer push, caching, bounded backoff and jitter where appropriate, not by dogma.
 
-Minimal code and minimal cost are different things, and the first is routinely passed off
-as the second. Polling every five seconds is shorter to write than a held request, and a
-thousand times more expensive to run. Laziness is measured in lines, not in requests,
-wakeups, and calls into other people's services. Where the work repeats: calculate first,
-write the code second.
+## 6. Secrets and checks
 
-The calculation is also reconnaissance. Costing the existing sites is how you find the
-ceilings nobody could see — third-party rate limits, handlers written for a single user,
-one open connection per client — before launch instead of during it.
+No real plaintext credentials in source, docs, fixtures, logs or build configuration.
+Use platform-protected storage or the deployment secret facility. Examples use obvious
+placeholders, never working keys. Redact diagnostics. Rotate exposed credentials through
+an authorized process and record the incident without reproducing the value.
 
----
+`python .devframework/check.py secrets --staged` inspects index blobs, not working files.
+It is a conservative heuristic, not an exhaustive security audit; see
+[verification limits](.devframework/VERIFICATION.md). Do not blanket-exclude tests/docs.
+Use a format-aware artifact scanner before distribution. Compressed, encrypted, unreadable
+or unsupported output is NOT CHECKED; scanning a directory is not proof its payload is safe.
 
-## 6. Secrets
+## 7. Reliability
 
-- Never put a plaintext token, key, or password into settings files, config files, README
-  examples, test artifacts, logs, or the backlog.
-- MVP / prototype / beta status is not a justification. There is no such exemption.
-- Secrets go into platform-protected storage. If a new feature needs a secret, protected
-  storage is added **first** and the integration second.
-- A secret that reaches a tracked file is in history forever — removing it means
-  rewriting history. It is far cheaper not to let it in.
-- If a secret was ever written in plaintext, treat it as compromised: move it to
-  protected storage, rotate it, and record the incident in `docs/KNOWN_ERRORS.md`.
+Persist state whose loss violates product behaviour at a defined commit boundary, not
+only on exit. State the durability and recovery contract. Do not overwrite good storage
+with unverified memory after a failure.
 
-Two different exposures need two different checks: **sources** (only files git actually
-tracks) and **build output** (a secret can be absent from the sources and still sit
-inside a shipped binary). When checking build output, check the whole output *directory* —
-in release mode the payload is compressed, and scanning one file proves nothing.
+Expected failures are handled at their operation boundary with bounded retries for
+transient errors and idempotency where effects can repeat. Unexpected invariant failures
+stop affected work and writes; diagnostics and recovery follow the selected profile.
+Do not turn read failures into first-run defaults or make restarting an infinite loop.
 
----
-
-## 7. Documentation maintenance
-
-Stated once, here. `CLAUDE.md` must not restate it.
-
-| Document | Update when | Write what |
-|---|---|---|
-| `docs/KNOWN_ERRORS.md` | any bug or limitation is found — while developing, testing, or reviewing | description, file/line, impact, fix or the status "not fixed". On fix, mark it fixed with the commit or version |
-| `docs/ARCHITECTURE.md` | the data schema changes, tables or migrations are added, new services or components appear, data flows change | new tables, fields, indexes, component diagrams, dependencies |
-| `docs/REQUIREMENTS.md` | any incoming request for a new feature, a behaviour change, or a correction to an existing function | a new numbered requirement, its description, and implementation status |
-| `docs/REGRESSION_TEST.md` | features are added or existing behaviour changes | new cases for new features; updated cases where behaviour changed. Run the full pass on every version bump |
-| `docs/BACKLOG.md` | a task is taken up, finished, or appears | the implementation scope, what did and did not make the version, and what remains |
-| `docs/RELEASE.md` | the release or deployment procedure changes | the corrected step; keep the checklist runnable start to finish |
-
-**A document that has drifted from the code is worse than a missing one.** This is not
-theory: three documents once carried a storage schema version of 12 while the real one was
-43, and it stopped nobody.
-
----
-
-## 8. Architecture principles
-
-### Crash-resilience — required for every feature
-
-Any state whose loss breaks the user experience or the business logic **must** be
-persisted:
-
-- When designing a feature, work through the abnormal-termination scenario: crash,
-  reboot, killed process.
-- Timers, locks, progress — persisted at the moment the state changes, not on exit.
-- On start, look for unfinished states and restore them.
-
-### Unexpected failures stop the work; they do not continue it
-
-- An **expected** failure — network down, server did not answer, file temporarily locked —
-  is handled inside the specific operation, with bounded retries.
-- An **unexpected** failure that reached the global handler: stop further operations, save
-  diagnostics, and offer the operator "Restart" or "Close". Do not carry on in an unknown
-  state, and do not write unverified in-memory state over good data on the way out. No
-  infinite automatic restart loop.
-- A read error must never turn into a silent reset. Factory defaults are acceptable
-  automatically only on a confirmed first run — never after a failure to load an existing
-  profile. Resetting to defaults is a separate, explicit operator action, because it
-  erases passwords, tokens, and configuration.
-- Until valid configuration is loaded, block every automatic save of it, including the
-  save on window close.
-
-### Modularity
-
-- No source file over 800 lines; 200–400 is the normal range. A file approaching the limit
-  gets logic extracted into a service or split by domain.
-- Functions under 50 lines. No nesting deeper than four levels — use early returns.
-- Business logic lives in services, not in UI code-behind. UI files bind and dispatch.
-- A new feature that adds more than ~50 lines of UI glue gets its own file, named for the
-  feature. Do not append to an existing file "because it is nearby".
-- When developing, read only the file you need. Keep the file map in `CLAUDE.md` current
-  so that stays possible.
-
----
-
-## 9. Known-error identifiers
-
-Entries in `docs/KNOWN_ERRORS.md` use a stable ID so code comments can point at them:
-
-```
-KE-YYYY-MM-DD-SHORT-SLUG
-```
-
-A comment explaining a non-obvious defence quotes the ID. That is how the reason survives
-the next refactor — the alternative is that someone removes the defence because the code
-looks redundant.
+Use the [recipes](.devframework/patterns/README.md) for outbox delivery, configuration,
+crash recovery, stale work, evolution, entry-point guards, performance and sync semantics.
+Record a stable known-error ID near
+non-obvious defences so a later refactor can recover their reason.

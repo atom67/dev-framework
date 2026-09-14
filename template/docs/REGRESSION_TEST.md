@@ -1,29 +1,36 @@
 # Regression test plan — {{PROJECT_NAME}}
 
-**What this is:** the manual pass run before every version bump, covering behaviour that
-automated tests cannot reach.
+**What this is:** a risk/coverage index and the remaining manual engineering checks.
 **Update when:** features are added or existing behaviour changes. See `AGENTS.md`
-section 7.
+section 3.
 
 ## When to run
 
-A full pass on every version bump. A targeted pass on the affected areas after any change
-to existing behaviour.
+Run the configured automated suite after implementation. On a behaviour change, update
+affected cases and exercise relevant boundaries. Before release, run the agreed release
+coverage and record any unavailable check as a limitation, not a pass.
 
 ## What belongs here and what does not
 
-Here: anything needing a human at the screen — modal dialogs, crash and restart paths,
-first-run and recovery flows, permissions prompts, anything that would kill the test
-process if automated.
+Automate repeatable assertions using the existing test framework. Crash/restart and
+permission failures can often be tested in isolated child processes or environments;
+they are not inherently manual. Never corrupt the operator's actual settings to test.
 
-Not here: anything an automated test can assert. If a case can be automated, automate it
-and delete the case. This file is the residue, not the main event.
+Keep a short link to automated coverage rather than duplicate the test procedure here.
+Manual cases cover remaining UX/environment behaviour and are performed by the engineer,
+not handed back to the product owner as debugging chores.
 
 ## Case format
 
 | # | Area | Steps | Expected result | Result |
 |---|---|---|---|---|
-| 1 | Example: recovery | Corrupt the settings file, start the app | Recovery screen appears; no factory reset happens; "Close" then restart still shows recovery, not defaults | |
+| 1 | Example: recovery | In an isolated temporary profile, supply invalid settings and start a child process | Recovery is explicit; existing bytes survive; close/restart never becomes a silent first run | not run |
+
+## Automated coverage index
+
+| Risk / requirement | Test command or source | What is NOT covered |
+|---|---|---|
+| Example: outbox | link to actual test when implemented | do not label a pure-function test as crash/concurrent-I/O coverage |
 
 ## Cases
 

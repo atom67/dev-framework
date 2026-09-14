@@ -1,2 +1,4 @@
 # Installer self-test scratch
 /temp/
+__pycache__/
+*.pyc

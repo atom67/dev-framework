@@ -3,7 +3,7 @@
 **What this is:** every requirement the product has, numbered, with its current status.
 **Who reads it:** anyone planning work, before touching the backlog.
 **Update when:** an incoming request asks for a new feature, a behaviour change, or a
-correction to an existing function. See `AGENTS.md` section 7.
+correction to an existing function. See `AGENTS.md` section 3.
 
 ## Identifiers
 

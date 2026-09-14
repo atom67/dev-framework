@@ -1,50 +1,145 @@
 # DEV Framework
 
-The process layer extracted from a five-month project, packaged so the next project does
-not have to rediscover it.
+A provider-neutral engineering process package extracted from Main OS. Version source:
+[VERSION](VERSION). No application runtime/library is imposed. The package supplies rules,
+project documents, reliability recipes and small verification tools.
 
-This is **not** a code framework. There is no library here, no dependency to add, no
-runtime. It is the set of rules, document skeletons, and hard-won reasons that made the
-source project stop losing work — plus one script that lays them into a repository.
+## Requirements
 
-## What is inside
+Python 3.10+ and Git. Standard library only; no pip install. The Windows wrapper is tested
+with PowerShell 7; it does not change execution policy. Python CLI works without PowerShell.
+Use a project directory separate from this package, not the package itself or its parent.
 
-| Path | What it is |
+## Start a project
+
+Preview first; it creates no target directory or files:
+
+```powershell
+.\install.ps1 -Target D:\DEV\NewProject -ProjectName "New Project" -Profile generic -ScaleTarget "50,000 users" -DryRun
+.\install.ps1 -Target D:\DEV\NewProject -ProjectName "New Project" -Profile generic -ScaleTarget "50,000 users"
+```
+
+Equivalent portable entry point:
+
+```text
+python scripts/install.py --target /path/to/new-project --name "New Project" --profile generic --scale "50,000 users" --dry-run
+```
+
+Remove `--dry-run` to install. Profiles: `generic` (default), `personal-desktop`, `service`.
+Scale is a positive integer plus a unit; thousands commas are optional. The worked example
+is calculated, not a replaced label: 50,000 clients at 1 request/minute generate 72,000,000
+requests/day and 833.33 requests/second for 24-hour activity, before retries.
+
+Installation does not initialize Git, alter hooks/settings, commit, push, build or launch
+an application. Review source before running it; installing code is not trusting it to run.
+
+## What the project receives
+
+| Path | Role / ownership |
 |---|---|
-| `template/AGENTS.md` | the operating protocol: session-start reading, planning, definition of done, acceptance, execution cost, secrets, documentation maintenance, architecture principles |
-| `template/CLAUDE.md` | project facts only — stack, structure, data locations, build commands. Deliberately thin, with an explicit ban on restating the rules |
-| `template/docs/` | skeletons for requirements, architecture, backlog, known errors, regression plan, release checklist, and a checklist template for programmes of work |
-| `LESSONS.md` | **read this one.** Every rule traced to the incident that produced it, with the real numbers |
-| `install.ps1` | lays the template into a target repository |
-| `skills/` | two skills for the AI agent doing the work — see below |
+| AGENTS.md | shared operating protocol; framework-managed |
+| CLAUDE.md | imports shared rules/facts; framework-managed adapter |
+| PROJECT.md | neutral stack/layout/storage/profile facts; project-owned |
+| docs/ | requirements, architecture, use-case catalogue, backlog, known errors, regression, release, handoff/checklist and use-case copy templates; project-owned |
+| .devframework/LESSONS.md | installed copy of this package's canonical LESSONS.md |
+| .devframework/patterns/ | eight failure/test/observability recipes |
+| .devframework/KNOWLEDGE_MAP.md | 23 transferred failure classes, five source fingerprints and explicit exclusions |
+| .devframework/profiles/ | optional workflow specializations |
+| .devframework/project.json | reviewed build/test/check argument arrays; project-owned |
+| .devframework/check.py | doctor, source-secret heuristic, counted finish and commit-check |
+| .devframework/manifest.json | installed version, rendering parameters and template hashes |
+| .devframework/backups/ | ignored local replacement backups and recovery journals |
+| skills/ | procedures for the agent installing or catching up a project; not copied into the target |
 
-## Install
+No source-project checkout or provider-private memory is required. Provider loading and a
+fresh-session test are documented in [AGENTS_GUIDE](template/.devframework/AGENTS_GUIDE.md).
+Live model behaviour is not guaranteed by static adapter checks.
+
+## Use-case catalogue
+
+Every installed project gets `docs/USE_CASES.md`: how the product delivers value, one
+path per benefit, interactive or automatic. Composition rules sit in that file
+(*How to read*, *Identifiers*). Copy-ready SET / module / case / NFV / traceability
+blocks are [`template/docs/USE_CASE_TEMPLATE.md`](template/docs/USE_CASE_TEMPLATE.md).
+An edition or public cut of the catalogue, with new IDs that map back to live
+`UC-###` numbers, is [`template/docs/USE_CASES_SLICE_TEMPLATE.md`](template/docs/USE_CASES_SLICE_TEMPLATE.md).
+
+Doctor rejects duplicate IDs, a heading without a `Test` field, a heading missing
+from the traceability table, SET Enables ranges that name unwritten cases, and
+Preconditions that name a SET row that does not exist. It does not judge whether
+Flow named the correct store. This package's own catalogue is [docs/USE_CASES.md](docs/USE_CASES.md).
+
+## Finish setup (the implementing agent does this)
+
+1. Fill `TODO(project):` facts in PROJECT.md and docs/ARCHITECTURE.md. Record N/A explicitly
+   when appropriate. Replace example requirements and example use cases with the agreed
+   product. Copy further cases from `docs/USE_CASE_TEMPLATE.md`.
+2. Configure real build/test commands and fresh counted test evidence in `.devframework/project.json`; see installed
+   `.devframework/VERIFICATION.md`. Tests must be isolated from real data/services.
+3. Link the active checklist from the backlog and populate its Handoff at portion boundaries.
+4. Run `python .devframework/check.py doctor`. A fresh scaffold is intentionally NOT READY.
+5. Once Git and commands are configured, run `python .devframework/check.py finish` after
+   implementation, even before first staging. It verifies WORKTREE source and fresh test
+   counts, prints its source digest, and rejects edits during checking. Before an authorized
+   commit, run `python .devframework/check.py commit-check` to also verify index parity.
+
+`doctor --structural` only verifies the scaffold and reports remaining setup. A green
+structural result is not a tested application. See [verification limits](template/.devframework/VERIFICATION.md)
+for unsupported scans, command trust, timeouts and opt-in hooks/consumer CI.
+
+## Existing projects and legacy adoption
+
+Existing project-owned documents are preserved, including with `-Force`. A different
+existing AGENTS.md or CLAUDE.md produces a conflict and stops installation before writes.
+The old package has no manifest: use initial installation/adoption, not `-Update`.
+
+The implementing agent should merge/reconcile existing rules and move factual content
+from the old CLAUDE.md into PROJECT.md. Preview `-Force` only when replacement is intended:
+it replaces conflicted framework files WITH a recoverable byte-for-byte backup, never the
+project documents. Run doctor afterwards; backup retention is not proof facts were migrated.
+Never force-overwrite a user's files merely to make a check green.
+
+## Safe updates
+
+From the newer framework checkout:
 
 ```powershell
-.\install.ps1 -Target D:\DEV\NewProject -ProjectName "New Project"
+.\install.ps1 -Target D:\DEV\NewProject -Update -DryRun
+.\install.ps1 -Target D:\DEV\NewProject -Update
 ```
 
-Optional:
+Python flags are `--update`, `--dry-run`, `--force`. Update reuses the original installation
+parameters and rejects silent parameter changes/downgrades. Edit evolving project facts
+in the project-owned documents, not through an installer overwrite.
 
-- `-ScaleTarget "50,000 users"` — the figure the cost rule is written against. Default is
-  `10,000 users`.
-- `-Force` — replace files that already exist. Without it, existing files are kept and
-  reported, because clobbering a project's own `CLAUDE.md` is data loss.
+- Untouched framework files update automatically (LF/CRLF differences alone are ignored).
+- Edited framework files conflict; no part of the update applies until resolved or
+  explicitly replaced with backup. Preview lists per-file actions, not a three-way merge.
+- Project-owned files are seeded once and never overwritten. Incorporate later template
+  improvements into those documents through a reviewed edit.
+  In particular, older project.json commands need the new test_evidence contract and a
+  report-producing runner; the included unittest adapter rejects zero/all-skipped runs.
+- Removed package files are retained and reported, never silently deleted.
+- A manifest does not make arbitrary existing instructions semantically compatible.
 
-Works on an empty directory and on a repository that already has content.
-
-Verify the installer itself:
+The installer uses an OS-released single-writer lock, atomic per-file replacements,
+backups and a pending journal. A caught write failure rolls back; process interruption
+leaves a marker that blocks further installation and doctor readiness.
 
 ```powershell
-.\install.ps1 -SelfTest
+.\install.ps1 -Target D:\DEV\NewProject -Recover
 ```
 
-## After installing
+Recovery restores the interrupted transaction only if current/backup hashes match the
+journal; a later user edit blocks recovery rather than being overwritten. Successful
+replacement backups remain under the reported directory for manual reviewed restoration.
+Do not delete them until acceptance. Automatic retention cleanup is deliberately absent.
 
-1. Fill in `CLAUDE.md` — stack, structure, data locations, build commands.
-2. Set the current schema version in `docs/ARCHITECTURE.md` if the project has one.
-3. Confirm the scale target in `AGENTS.md` section 5 is the figure you actually mean.
-4. Read `LESSONS.md` once. Rules whose reasons are unknown get deleted within a year.
+Limits: this is a local trusted-workspace installer, not a defence against a malicious
+process swapping filesystem paths concurrently. It rejects symlinks, Windows junctions,
+hard-linked target files and overlapping source/target roots. Multi-file visibility is
+not atomic; installation and doctor/finish refuse a pending transaction. Power-loss guarantees depend on the
+filesystem and are not proven by a process-crash test. No automatic semantic merge.
 
 ## Skills for the agent
 
@@ -60,30 +155,40 @@ repository, so `template/` stays exactly what gets laid into a project and nothi
 | Skill | When |
 |---|---|
 | `import-dev-framework` | installing the package into a repository: settle the scale target with the operator, lay in the template, correct what substitution cannot reach, fill `CLAUDE.md` from the code, verify no placeholder survived |
-| `catch-up` | the code already exists and the documents do not: reconstruct requirements, architecture, known errors, backlog, regression plan, and release procedure from the codebase, then run the cost and secret audits |
+| `catch-up` | the code already exists and the documents do not: reconstruct requirements, architecture, use cases, known errors, backlog, regression plan, and release procedure from the codebase, then run the cost and secret audits |
 
 `catch-up` governs itself by the rule it enforces — on a large repository it opens a
 checklist in `docs/` before its first edit and archives it at the end. Its one hard rule is
 that a reconstructed statement is either read out of the code or listed as unconfirmed for
-the operator. Six documents written at once is the highest-risk moment lesson 2 has, and a
+the operator. Seven documents written at once is the highest-risk moment lesson 2 has, and a
 plausible guess is never checked again.
 
 Neither skill fixes what it finds. A ceiling found while costing, or a secret found in the
 index, goes into the documents and to the operator as a decision — not into a quiet
 refactor inside a documentation task.
 
-## What was deliberately left out
+## Verify this package
 
-The source project enforces several of these rules with about 1,200 lines of Python and
-two git hooks — cost calculation, secret scanning, document drift, a one-command finish,
-per-commit model attribution. Those are **not** included: the next project's stack is not
-settled, and a check written for the wrong language is worse than no check.
+```text
+python -B scripts/verify.py
+```
 
-The last section of `LESSONS.md` lists them, what each does, how portable each is, and the
-three properties worth keeping whatever the language.
+Or `./install.ps1 -SelfTest`. Both run the same suite, reject zero discovered tests and
+check the diff. Fixtures use newly created temporary repositories with no real credentials,
+remote services or commits. Tests include custom scale, adoption/update/backup, path
+escapes, a real child-process crash, staged/worktree mismatch and false-green doctor/finish.
 
-## Maintaining this package
+The GitHub CI workflow is configured to run this command on Windows and Linux with
+read-only repository permissions; a configured workflow is not an observed hosted run.
+Local results and unverified environments are recorded in [the active plan](docs/PLAN.md).
+The reproducible handoff fixture and actual native-provider access results are documented
+in [pilot evidence](docs/evidence/HANDOFF_2026-08-31.md). A blocked session is not a pass.
+Source-specific Main OS scanners, runtime monitoring, artifact parsers and model-attribution
+collection are not included. No claim of exhaustive security scanning or universal crash safety.
 
-When a project using it learns something the hard way, the lesson comes back here — the
-incident with its numbers in `LESSONS.md`, the rule it produced in `template/AGENTS.md`.
-A package that only ever flows outward goes stale in one project cycle.
+## Maintenance
+
+Keep [LESSONS.md](LESSONS.md) canonical; the installer copies it, so there is no manually
+synchronized second source. Update recipes/rules, add a failing regression test for a
+tooling defect, bump VERSION when shipping and run the full suite. Propose reusable lessons
+upstream without automatically copying private project data. Accept first, then commit/push.

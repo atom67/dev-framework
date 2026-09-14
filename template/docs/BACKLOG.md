@@ -3,12 +3,13 @@
 **What this is:** the operational queue. What is being worked on now, what is agreed next.
 **What this is not:** a history of everything ever done. See the trimming rule below.
 
-**Update when:** a task is taken up, finished, or appears. See `AGENTS.md` section 7.
+**Update when:** a task is taken up, finished, or appears. See `AGENTS.md` section 3.
 
 ## Statuses
 
-`todo` — agreed, not started. `in progress` — being worked on now. `done` — built,
-verified, and accepted.
+`todo` — agreed, not started. `in progress` — being worked on now. `awaiting acceptance`
+— implementation verified and presented, not yet accepted. `done` — accepted.
+Link the active checklist; its Handoff section owns continuation details.
 
 ## Trimming rule
 
@@ -26,7 +27,7 @@ trimming, not a bigger limit.
 
 | Task | Scope | Status |
 |---|---|---|
-| ... | what is in and what is explicitly out | in progress |
+| No active task yet | add agreed scope and a link to its checklist | todo |
 
 ## Next
 

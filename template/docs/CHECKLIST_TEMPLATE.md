@@ -51,9 +51,22 @@ Recording them here is what stops them being rediscovered as bugs.
 
 - ...
 
-## Left for the operator
+## Handoff — update at every portion boundary and provider switch
 
-Anything that genuinely cannot be automated — a manual smoke test, a decision, an external
-approval. State exactly what to do and what the expected outcome is.
+- Branch/base commit and task-owned uncommitted changes:
+- Current portion and next concrete step (reference the checklist, do not duplicate it):
+- Agreed decisions and links to their source of truth:
+- Commands/checks actually run, date, result/counts, environment and evidence:
+- Checks not run, reason and remaining risk:
+- Known errors or deliberate limits affecting continuation:
+- Acceptance/commit/deploy authorization actually received (never infer it):
+
+The next agent reconciles this with git and code; a stale handoff is not authority.
+
+## Product decisions or external authorization still needed
+
+Only choices the operator can make from the evidence presented, or authorization the
+engineer cannot grant. Engineering smoke tests remain the engineer's responsibility;
+if access is unavailable, record the unverified behaviour and risk in Handoff above.
 
 - [ ] ...

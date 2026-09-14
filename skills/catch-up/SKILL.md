@@ -1,6 +1,6 @@
 ---
 name: catch-up
-description: Reconstruct the DEV Framework documentation set from a codebase that was already built without it — requirements, architecture, known errors, backlog, regression plan, release procedure — plus the cost and secret audits, with everything unverifiable marked as unconfirmed rather than guessed. Use when the operator says "catch up the docs", "restore documentation", "we already have code, apply the framework", "backfill AGENTS docs", "восстанови документацию", "подтяни доки под фреймворк".
+description: Reconstruct the DEV Framework documentation set from a codebase that was already built without it — requirements, architecture, use cases, known errors, backlog, regression plan, release procedure — plus the cost and secret audits, with everything unverifiable marked as unconfirmed rather than guessed. Use when the operator says "catch up the docs", "restore documentation", "we already have code, apply the framework", "backfill AGENTS docs", "восстанови документацию", "подтяни доки под фреймворк".
 argument-hint: "<target-repo-path>"
 allowed-tools: Bash, Read, Write, Edit, Glob, Grep, AskUserQuestion
 ---
@@ -22,7 +22,7 @@ There is no third option, and inventing one is the single way this exercise does
 Three documents in the source project stated the storage schema version as 12 while the
 real one was 43, and it stopped nobody for months. A drifted document is worse than a
 missing one: the missing one sends you to the code, the drifted one confidently lies and
-you believe it. You are about to write six documents at once, which is the highest-risk
+you believe it. You are about to write seven documents at once, which is the highest-risk
 moment that failure has.
 
 So: every document ends with an **Unconfirmed** section. Anything you inferred, could not
@@ -83,6 +83,14 @@ renumbering later.
 Requirements are the document most likely to be contaminated by intent. If the code does
 X and the README promises Y, the requirement is X — and Y goes to the operator as a
 question, because you have just found either a bug or a stale README.
+
+**`docs/USE_CASES.md`** — after architecture and requirements, because a case names
+components and `FR-###` by reference. Copy further cases from `docs/USE_CASE_TEMPLATE.md`.
+Every user-visible or automatic benefit path gets a stable `UC-###`, a trigger
+(Interactive or Automatic), SET preconditions, a Flow that names the live store when
+more than one exists, an Outcome, and exactly one Test status (`covered` / `gap` /
+`NFV`). Do not pad SET Enables ranges. An edition/public cut uses
+`docs/USE_CASES_SLICE_TEMPLATE.md` and does not renumber living cases.
 
 **`docs/KNOWN_ERRORS.md`** — the richest seam in an existing codebase, and the one nobody
 ever writes down. Sources: `TODO`, `FIXME`, `HACK`, `XXX` comments; skipped, disabled, or

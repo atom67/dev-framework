@@ -1,6 +1,9 @@
 # Lessons
 
-Every rule in `template/AGENTS.md` was bought with an incident. This file is the receipt.
+These are incident-derived lessons, not proof that every source-project implementation
+is universally correct. The installer copies this canonical file to
+`.devframework/LESSONS.md`; projects do not need access to Main OS to read it.
+Rules live in the project-root AGENTS.md; recipe links are in .devframework/patterns/README.md.
 
 A rule without its reason gets deleted by the next person who finds it inconvenient — and
 they are not being careless, they genuinely cannot see what it is holding up. Keep the
@@ -41,7 +44,7 @@ A document that has drifted is worse than a missing one: the missing one sends y
 code, the drifted one confidently lies and you believe it.
 
 **Rule produced:** documentation maintenance is a listed obligation per document, and the
-"current version" statement is checked mechanically. See `AGENTS.md` section 7.
+"current version" statement needs a stack-specific mechanical check. See AGENTS.md section 3.
 
 **Second-order lesson.** The first version of that check also flagged the legitimate
 migration history — `v14`, `v15`, and so on in the architecture document — producing
@@ -56,8 +59,9 @@ Publishing to version-stamped directories (`publish/server-0.6.1`, `temp/server-
 versioned `.zip` and `.apk` copies) accumulated about **2.5 GB** of dead copies before
 anyone looked.
 
-**Rule produced:** always publish to the same fixed directory; remove staging after a
-rollout, locally and remotely. See `AGENTS.md` section 2.
+**Transferable rule:** bounded retention and validated cleanup of task-owned staging.
+The source project chose a fixed publish directory; a service may instead need immutable
+versioned artifacts and a known-good rollback set. See AGENTS.md section 1 and the profile.
 
 Note the shape of the fix: the cleanup was automated on push, and the automation was
 written so it **never blocks the push**. Housekeeping that can fail a developer's push
@@ -67,9 +71,9 @@ gets disabled within a week.
 
 ## 4. The check that read the working tree instead of the index
 
-A check scanned files on disk. Commits contain the **index**. So: stage a fix, then revert
-it in the working tree without re-staging — the check reads disk, sees "fixed", stays
-quiet, and the unfixed version goes into the commit.
+A check scanned files on disk. Commits contain the **index**. Stage a defective version,
+then fix the working file without re-staging: the check sees a fix, while the commit still
+contains the defect. Conversely, an unstaged defect must not be mistaken for staged content.
 
 The same bug then appeared independently in two more checks written later.
 
@@ -117,9 +121,9 @@ diverged**: each listed a document the other did not.
 
 Nobody decided to diverge. Two copies simply cannot be edited together forever.
 
-**Rule produced in this package:** process rules live in `AGENTS.md` only. `CLAUDE.md`
-holds project facts plus an explicit prohibition on restating the rules. This is the one
-place where the package deliberately does **not** copy the source project.
+**Rule produced in this package:** process rules live in AGENTS.md only, project facts in
+PROJECT.md, and executable verification commands in .devframework/project.json. CLAUDE.md
+imports the shared documents. Provider-private memory is not a portable source of truth.
 
 ---
 
@@ -129,8 +133,9 @@ Loading the settings file went wrong, and the recovery path quietly produced fac
 defaults — erasing the stop password, the API tokens, and the monitored-application list.
 Three mechanisms conspired:
 
-- the corrupt file was quarantined **before** the operator had chosen anything, so
-  "restore the original" no longer existed by the time it was offered;
+- the corrupt file was quarantined **before** the operator had chosen anything, so the
+  original path disappeared; the next launch could mistake that absence for first run,
+  even though the bytes still existed under the quarantine name;
 - a parser returning `null` was treated as success and swallowed into a fresh object;
 - a missing file was indistinguishable from a first run, so a profile that had existed for
   months could be reset by a single failed read.
@@ -138,7 +143,7 @@ Three mechanisms conspired:
 **Rules produced:** bounded retries for transient failures; no automatic reset after a
 failed load of an existing profile; factory defaults only on a **confirmed** first run;
 resetting is a separate explicit operator action; block every automatic save until valid
-configuration is loaded. See `AGENTS.md` section 8.
+configuration is loaded. See AGENTS.md section 7 and the configuration recipe.
 
 ---
 
@@ -153,14 +158,15 @@ Three further traps found while fixing it, worth knowing in advance:
 - a modal dialog still pumps the event queue, so timers keep firing behind the crash
   window;
 - the "stop everything" routine originally listed timers by name and covered **3 of about
-  25** — a hand-maintained list of things to stop is guaranteed to drift, so sweep them
-  reflectively instead;
+  25**. Reflection was a local mitigation, not a general lifecycle design: it cannot by
+  itself cancel in-flight work or timers owned by other services. Register owned workers,
+  gate new work/writes, cancel and await quiescence with a bounded deadline;
 - one of the stop routines deleted persisted state as part of stopping, so crashing would
   have destroyed exactly the data that crash-resilience exists to protect.
 
-**Rule produced:** an unexpected failure stops the work and offers restart or close. It
-does not continue, does not write unverified memory over good data, and does not loop
-restarting. See `AGENTS.md` section 8.
+**Rule produced:** an unexpected invariant failure stops affected work and unsafe writes.
+A desktop may offer restart/close; a service needs readiness, draining and a bounded
+supervisor policy. See AGENTS.md section 7 and the crash-recovery recipe.
 
 ---
 
@@ -173,7 +179,10 @@ just been cancelled.
 
 **Pattern worth carrying:** when work is queued under a lock and performed outside it,
 capture a generation counter with the queued item and drop the item if the generation
-changed. Cheap, and it makes the whole class of bug impossible rather than unlikely.
+changed. Validate the generation and commit the state change atomically under the same
+ownership boundary; otherwise the state can change between the check and the write.
+Cancellation does not undo an external effect already sent. The stale-work recipe names
+fencing/idempotency and the remaining race tests; a counter alone is not a guarantee.
 
 ---
 
@@ -191,19 +200,85 @@ See `AGENTS.md` section 4.
 
 ---
 
-## Deliberately not carried over: the automated checks
+## 12. Clearing an outbox lost newly queued records
+
+Main OS took a queue snapshot, sent it, and on success saved an empty queue. A user record
+added during the request disappeared. Two copies of the rule had independently diverged.
+Source evidence: Main OS docs/ARCHITECTURE.md, "Правило очередей отправки на телефоне",
+and KE-2026-08-27-OUTBOX in docs/KNOWN_ERRORS.md (recorded 2026-08-27).
+
+**Transferable rule:** remove only confirmed IDs from current durable pending work, in an
+atomic local operation. Preserve new and unacknowledged entries; retry with stable IDs
+and an idempotent receiver. Share the rule, not two similar copies.
+
+**Coverage limit:** the source's list-subtraction self-check is not proof of concurrent
+I/O or crash safety. Test acknowledgement loss, concurrent enqueue and interruption around
+commit separately. See the outbox recipe; it specifies the stronger target contract.
+
+## 13. The guard was correct; the exit path bypassed it
+
+A one-call refactor changed cancellable tray close to unconditional shutdown. The password
+guard stayed correct. The incident report records **123 days** before discovery; a unit
+test of the guard alone would not detect the caller ignoring its result.
+Source: KE-2026-08-16-SESSION-LOCK and incident-report.html (transfer map S01/S03).
+
+**Rule:** inventory protected effects and all entry points; test denial through actual
+adapters. Keep emergency/debug semantics explicitly distinct. See entry-point-invariants
+and docs/INVARIANTS.md in an installed project.
+
+## 14. Fast inner timings, slow screen
+
+A layout change disabled virtualization; hundreds of avatars decoded on the UI thread.
+Follow-up fixes optimized SQL/binding while the displayed result still took seconds.
+Collection notifications and per-folder aggregates added separate growth costs.
+Source: Messenger performance guide in KNOWN_ERRORS.md (transfer map S03).
+
+**Rule:** measure until rendered, at representative data volume with cold/warm caches.
+Bound rows/images, query counts, refresh cascades and lock-held work. Particular WPF panels
+or SQLite pragmas are not universal requirements. See bounded-performance.
+
+## 15. Successfully delivered, semantically wrong
+
+Clients measured different reaction-time intervals; stale snapshots erased progress;
+removing a calendar source risked fabricating cancellations. Transport success could not
+expose these errors. Source selections: transfer map K-014 through K-018.
+
+**Rule:** name ownership, metric meaning, deletion semantics and conflict/order policy.
+Persist accepted actions promptly; apply records/cursor atomically. Test offline/reordered
+convergence, not only HTTP status or counts. See sync-semantics.
+
+## 16. A padded ID range is a confident lie
+
+A use-case catalogue listed SET-018 as enabling UC-150…155 and UC-170…173. The written
+cases stopped at 154 and 172. The uniqueness check passed: every heading was unique and
+every heading had a tracing-table row. The missing numbers existed only in the range.
+
+The same catalogue described calendar/tasks as going "over /api/*, reading the read-only
+replica". Both halves were true of *some* tool. Together they sent an agent looking for
+Todoist in a database clone that does not contain it.
+
+**Rule produced:** SET Enables and Preconditions are expanded and must name IDs that exist.
+Do not pad ranges to look round. When more than one store exists, Flow names which one;
+do not merge a safety slogan from another path into an API case. Doctor checks the IDs.
+Which-store wording remains a review item (sync-semantics). See AGENTS.md section 3.
+
+---
+
+## Source checks and what version 0.2 actually carries
 
 The source project enforces several of these rules with 1,237 lines of Python plus two git
-hooks. Those were **not** ported — the operator's decision, since the next project's stack
-is not settled, and a check written for the wrong language is worse than no check.
+hooks. Those implementations were not ported in the initial scope. Version 0.2 adds a
+small stack-independent doctor, staged-secret heuristic and configurable finish runner,
+with their own negative tests. It does not claim parity with source-specific checks.
 
-The protocol they enforce is written down in `AGENTS.md`. When automation is wanted, port
-from the reference rather than reinventing: these were debugged against real defects.
+The following paths and historical sizes identify reference material inside Main OS,
+not files promised in this package. Re-evaluate applicability and test known defects
+before reusing them; past debugging is not a universal correctness guarantee.
 
 | Reference | Lines | What it does | Portability |
 |---|---|---|---|
 | `scripts/checks/secrets.py` + its test | 301 | secrets in tracked sources and in build output | high — regexes plus an extension list |
-| `scripts/attribution/build.py` | 317 | per-commit model attribution from agent transcripts and commit trailers | high — two paths to change |
+| `scripts/attribution/build.py` | 317 | per-commit model attribution from agent transcripts and commit trailers | provider-specific transcript formats; unknown attribution must stay unknown |
 | `scripts/checks/finish.py` | 242 | one command: build affected projects, run tests, run checks, stop before pushing | medium — the project list is a constant |
 | `scripts/checks/doc_drift.py` | 207 | current-version claims in documents against the code | low — knows the source project's files |
 | `scripts/checks/periodic_cost.py` | 170 | repeating work with no `cost:` calculation | low — patterns are language-specific |
