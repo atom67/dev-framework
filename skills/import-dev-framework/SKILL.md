@@ -8,8 +8,9 @@ allowed-tools: Bash, Read, Write, Edit, Glob, Grep, AskUserQuestion
 # Import the DEV Framework into a repository
 
 The package is a process layer, not a library. Installing it means the target repository
-gains an operating protocol, a thin facts file, and six document skeletons — and that the
-agent working there starts obeying them.
+gains an operating protocol, a thin facts file, and the `docs/` skeletons including
+requirements, architecture, use cases, backlog, known errors, regression, release and
+copy templates — and that the agent working there starts obeying them.
 
 Laying the files down is the easy part and takes one command. The part that decides
 whether this survives is steps 4 and 5: a template that keeps its placeholders, or a
