@@ -10,6 +10,10 @@ from unittest.mock import patch
 from common import ROOT, WorkspaceTest, install
 from safety import child, project_lock
 
+# Read from the package, so a VERSION bump does not silently break these tests.
+PACKAGE_VERSION = (ROOT / "VERSION").read_text(encoding="utf-8").strip()
+NEWER_VERSION = ".".join(str(n + (i == 2)) for i, n in enumerate(map(int, PACKAGE_VERSION.split("."))))
+
 
 class InstallerTests(WorkspaceTest):
     def test_install_carries_local_knowledge_and_neutral_facts(self):
@@ -18,7 +22,7 @@ class InstallerTests(WorkspaceTest):
         self.assertEqual((self.target / ".devframework/LESSONS.md").read_bytes(), (ROOT / "LESSONS.md").read_bytes())
         self.assertIn("@PROJECT.md", (self.target / "CLAUDE.md").read_text())
         self.assertTrue((self.target / ".devframework/patterns/outbox.md").is_file())
-        self.assertEqual(install.load_manifest(self.target)["version"], "0.2.0")
+        self.assertEqual(install.load_manifest(self.target)["version"], PACKAGE_VERSION)
 
     def test_scale_math_three_sizes(self):
         for number, daily, second in [(5000, "7,200,000", "83.33"), (10000, "14,400,000", "166.67"),
@@ -78,7 +82,7 @@ class InstallerTests(WorkspaceTest):
         self.write("AGENTS.md", (self.target / "AGENTS.md").read_bytes().replace(b"\n", b"\r\n"))
         new_rule = source / "template/AGENTS.md"
         new_rule.write_text(new_rule.read_text(encoding="utf-8") + "\nNew rule.\n", encoding="utf-8")
-        (source / "VERSION").write_text("0.2.1\n")
+        (source / "VERSION").write_text(NEWER_VERSION + "\n")
         result = install.install(self.target, source=source, update=True)
         self.assertFalse(result["conflicts"])
         self.assertIn("New rule.", (self.target / "AGENTS.md").read_text(encoding="utf-8"))
@@ -272,10 +276,10 @@ install.install(target, name='Crash fixture', force=True)
         def race(*args):
             plan = real_plan(*args)
             manifest = install.load_manifest(self.target)
-            manifest["version"] = "0.2.1"
+            manifest["version"] = NEWER_VERSION
             self.write(install.MANIFEST, json.dumps(manifest))
             return plan
 
         with patch.object(install, "make_plan", side_effect=race), self.assertRaisesRegex(ValueError, "changed during planning"):
             install.install(self.target, update=True)
-        self.assertEqual(install.load_manifest(self.target)["version"], "0.2.1")
+        self.assertEqual(install.load_manifest(self.target)["version"], NEWER_VERSION)
