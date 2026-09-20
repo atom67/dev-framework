@@ -136,6 +136,12 @@ The operator accepts priorities and trade-offs, not debugging chores. Manual eng
 verification remains the implementer's job; inaccessible checks are explicit limitations.
 Acceptance, commit and deployment are separate events.
 
+**Devlog (optional).** When `devlog.enabled` is true in `.devframework/project.json`, every
+finalized dialogue gets a verbatim log file before the push: `python .devframework/check.py
+devlog --agent <client-MODEL> --codes <FR/UC codes> --from-git N`, then paste the dialogue. For public or
+unknown-visibility repositories the log stays local and git-ignored. Rules and format:
+[.devframework/DEVLOG.md](.devframework/DEVLOG.md).
+
 ## 5. Execution cost
 
 Every repeating operation needs a nearby `cost:` explanation: interval, active duration,

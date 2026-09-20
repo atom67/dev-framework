@@ -15,8 +15,8 @@ guard). Composition rules for *consumer* catalogues are in
 
 | ID | Setting | Where configured | Required / optional | Enables |
 |---|---|---|---|---|
-| SET-001 | Python 3.10+ on PATH | operator machine | required | UC-001, UC-002, UC-003, UC-004, UC-005, UC-006, UC-007 |
-| SET-002 | Git | operator machine | required for finish/commit-check and package verify | UC-006, UC-007 |
+| SET-001 | Python 3.10+ on PATH | operator machine | required | UC-001, UC-002, UC-003, UC-004, UC-005, UC-006, UC-007, UC-009 |
+| SET-002 | Git | operator machine | required for finish/commit-check and package verify | UC-006, UC-007, UC-009 |
 | SET-003 | Target directory disjoint from this package | install `-Target` | required | UC-001, UC-002, UC-003, UC-004 |
 
 ---
@@ -121,6 +121,15 @@ guard). Composition rules for *consumer* catalogues are in
 - **Outcome:** unwritten IDs and untested-but-testable paths are visible, not implied.
 - **Test:** covered — `test_use_case_*` in `tests/test_checks.py`.
 
+#### UC-009 — Devlog skeleton at finalization (optional)
+
+- **Trigger:** Interactive — `python .devframework/check.py devlog --agent <client-MODEL> --codes … --from-git N` after finish/commit-check; the installer asked whether the rule is on.
+- **Actor:** implementing agent.
+- **Preconditions:** SET-001, SET-002; `devlog.enabled` in project.json.
+- **Flow:** agent tags (at most 2, `<client>-<MODEL>`) and codes validated; commits taken from git log or `--commit sha=summary` (≤ 3 sentences each); repository visibility checked (`gh`, else unknown); for public/unknown the devlog dir is added to `.gitignore`; the header file is written; the agent pastes the dialogue verbatim.
+- **Outcome:** the operator's actual words sit next to the commits they produced, without ever leaking into a public repository by default.
+- **Test:** covered — `tests/test_devlog.py`.
+
 ---
 
 ## Not functionally verifiable
@@ -141,3 +150,4 @@ guard). Composition rules for *consumer* catalogues are in
 | UC-006 | Interactive | FR-007 | `check.py` | covered |
 | UC-007 | Interactive | FR-005, FR-007 | `check.py` | covered |
 | UC-008 | Interactive | FR-011 | `template/docs/USE_CASES.md` | covered |
+| UC-009 | Interactive | FR-015 | `template/.devframework/devlog.py`, `check.py`, `scripts/install.py` | covered |

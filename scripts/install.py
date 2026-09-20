@@ -47,6 +47,15 @@ def seed_file(path: str) -> bool:
     return path == "PROJECT.md" or path == ".devframework/project.json" or path.startswith("docs/")
 
 
+def ask_devlog() -> bool:
+    """Opt-in question; only when stdin is a terminal. Non-interactive installs default to off."""
+    if not sys.stdin.isatty():
+        return False
+    answer = input("Enable Devlog — verbatim dialogue log written at finish/commit "
+                   "(kept local and git-ignored for public repos)? [y/N] ").strip().lower()
+    return answer in {"y", "yes"}
+
+
 def render(source: Path, params: dict) -> dict[str, bytes]:
     count = params["count"]
     replacements = {
@@ -76,6 +85,7 @@ def render(source: Path, params: dict) -> dict[str, bytes]:
         "commands": {"build": None, "test": None, "checks": []},
         "build_not_applicable": None,
         "test_evidence": {"format": "devframework-v1", "max_skipped": 0},
+        "devlog": {"enabled": bool(params.get("devlog", False)), "dir": "docs/devlog", "commit": False},
     })
     missing = set(REQUIRED) - {MANIFEST} - files.keys()
     if missing:
@@ -216,7 +226,7 @@ def apply_plan(target: Path, plan: list[dict], manifest: dict) -> str | None:
 
 def install(target: Path, *, source: Path = PACKAGE, name: str | None = None,
             scale: str | None = None, profile: str | None = None, update: bool = False,
-            force: bool = False, dry_run: bool = False) -> dict:
+            force: bool = False, dry_run: bool = False, devlog: bool = False) -> dict:
     source, target = checked_path(source), checked_path(target)
     disjoint(source, target)
     if child(target, PENDING).exists():
@@ -236,7 +246,7 @@ def install(target: Path, *, source: Path = PACKAGE, name: str | None = None,
         raise ValueError("Package VERSION must be numeric major.minor.patch")
     if previous and tuple(map(int, version.split("."))) < tuple(map(int, previous["version"].split("."))):
         raise ValueError("Downgrade is not an update; restore reviewed backups instead")
-    files = render(source, params)
+    files = render(source, {**params, "devlog": devlog})
     plan = make_plan(target, files, previous, force)
     conflicts = [p["path"] for p in plan if p["action"] == "conflict"]
     manifest = {"format": 1, "version": version, "parameters": params, "files": {}}
@@ -254,6 +264,13 @@ def install(target: Path, *, source: Path = PACKAGE, name: str | None = None,
             if load_manifest(target) != previous or child(target, PENDING).exists():
                 raise ValueError("Installation changed during planning; inspect and retry")
             backup = apply_plan(target, plan, manifest)
+        if devlog and not previous:
+            # Devlog is personal working material: for public/unknown repositories the
+            # directory is git-ignored from the first minute (see .devframework/DEVLOG.md).
+            import devlog as devlog_mod
+            local_only, _ = devlog_mod.keep_local(target, {"enabled": True, "dir": "docs/devlog", "commit": False})
+            if local_only:
+                devlog_mod.ensure_gitignored(target, "docs/devlog")
     return {"version": version, "dry_run": dry_run, "conflicts": conflicts, "backup": backup,
             "files": [{"path": p["path"], "action": p["action"]} for p in plan]}
 
@@ -268,6 +285,9 @@ def main() -> int:
     parser.add_argument("--force", action="store_true", help="replace conflicted framework files WITH backup; never project documents")
     parser.add_argument("--dry-run", action="store_true", help="preview without creating or writing anything")
     parser.add_argument("--recover", action="store_true", help="roll back an interrupted transaction; never overwrite later edits")
+    log = parser.add_mutually_exclusive_group()
+    log.add_argument("--devlog", action="store_true", help="enable the optional Devlog rule without asking")
+    log.add_argument("--no-devlog", action="store_true", help="disable the optional Devlog rule without asking")
     args = parser.parse_args()
     try:
         if args.recover:
@@ -281,7 +301,8 @@ def main() -> int:
                 restore_pending(target)
             print("Interrupted installation rolled back; backups retained.")
             return 0
-        result = install(args.target, name=args.name, scale=args.scale, profile=args.profile,
+        devlog_on = True if args.devlog else False if (args.no_devlog or args.update or args.dry_run) else ask_devlog()
+        result = install(args.target, name=args.name, scale=args.scale, profile=args.profile, devlog=devlog_on,
                          update=args.update, force=args.force, dry_run=args.dry_run)
         print(json.dumps(result, ensure_ascii=False, indent=2))
         if result["conflicts"]:

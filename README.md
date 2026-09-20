@@ -42,6 +42,7 @@ an application. Review source before running it; installing code is not trusting
 | PROJECT.md | neutral stack/layout/storage/profile facts; project-owned |
 | docs/ | requirements, architecture, use-case catalogue, backlog, known errors, regression, release, handoff/checklist and use-case copy templates; project-owned |
 | .devframework/LESSONS.md | installed copy of this package's canonical LESSONS.md |
+| .devframework/DEVLOG.md, devlog.py | optional verbatim dialogue log rule and helper (opt-in at install) |
 | .devframework/patterns/ | eight failure/test/observability recipes |
 | .devframework/KNOWLEDGE_MAP.md | 23 transferred failure classes, five source fingerprints and explicit exclusions |
 | .devframework/profiles/ | optional workflow specializations |
@@ -54,6 +55,24 @@ an application. Review source before running it; installing code is not trusting
 No source-project checkout or provider-private memory is required. Provider loading and a
 fresh-session test are documented in [AGENTS_GUIDE](template/.devframework/AGENTS_GUIDE.md).
 Live model behaviour is not guaranteed by static adapter checks.
+
+## Devlog (optional)
+
+A verbatim log of the dialogue that produced a piece of work, one Markdown file per
+finalized dialogue, written at finish/commit time. The installer **asks** whether to enable
+it; `-Devlog` / `-NoDevlog` (`--devlog` / `--no-devlog`) answer without the prompt, and
+non-interactive installs default to off. Stored in `.devframework/project.json`:
+
+```json
+"devlog": {"enabled": true, "dir": "docs/devlog", "commit": false}
+```
+
+File name = dialogue date + client/model that drove it (two models max when they switched) + affected codes (`2026-09-20_claudecode-OPUS5_FR-005_UC-004.md`); the header lists
+the commits of that dialogue with a summary of at most three sentences each; the body is the
+dialogue verbatim. **Public repositories (or unknown visibility) keep devlogs local:** the
+directory is added to `.gitignore` automatically; committing needs `commit: true` and a private
+repository. Skeleton: `python .devframework/check.py devlog --agent claudecode-OPUS5 --codes FR-005,UC-004 --from-git 2`.
+Rule text: [template/.devframework/DEVLOG.md](template/.devframework/DEVLOG.md).
 
 ## Use-case catalogue
 

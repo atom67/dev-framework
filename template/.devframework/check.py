@@ -15,6 +15,7 @@ from secrets_check import scan_index
 from verification import doctor, load_config
 from source_scope import identity, require_index_parity, scan_worktree, snapshot
 from test_evidence import validate
+import devlog as devlog_mod
 
 
 def show_doctor(report: dict, structural: bool) -> int:
@@ -95,6 +96,24 @@ def finish(root: Path, *, commit: bool = False) -> int:
     print(f"{'COMMIT CHECK' if commit else 'FINISH'} PASSED: {len(steps)} configured commands. "
           f"{'Index/worktree parity verified.' if commit else 'WORKTREE ONLY; commit content NOT certified.'} "
           "No commit, push, deploy or restart was added.")
+    reminder = devlog_mod.missing_today(root)
+    if reminder:
+        print(reminder)
+    return 0
+
+
+def devlog_entry(root: Path, args) -> int:
+    from datetime import date
+    day = date.fromisoformat(args.date) if args.date else date.today()
+    commits = devlog_mod.recent_commits(root, args.from_git) if args.from_git else []
+    for spec in args.commit or []:
+        sha, _, summary = spec.partition("=")
+        if not sha or not summary:
+            raise ValueError("--commit expects <sha>=<summary of at most three sentences>")
+        commits.append((sha.strip(), summary.strip()))
+    path = devlog_mod.new_entry(root, day, args.agent, args.codes.split(","), commits)
+    local_only, reason = devlog_mod.keep_local(root)
+    print(f"DEVLOG CREATED: {path.relative_to(root).as_posix()} ({reason}); paste the dialogue under '## Dialogue (verbatim)'")
     return 0
 
 
@@ -110,6 +129,13 @@ def main() -> int:
     scope.add_argument("--worktree", action="store_true")
     sub.add_parser("finish")
     sub.add_parser("commit-check")
+    log = sub.add_parser("devlog", help="create a devlog skeleton (optional rule, see DEVLOG.md)")
+    log.add_argument("--agent", action="append", required=True, metavar="CLIENT-MODEL",
+                     help="who drove the dialogue, e.g. claudecode-OPUS5; repeat once for the second model when models switched")
+    log.add_argument("--codes", required=True, help="comma-separated FR/UC/KE codes the dialogue touched")
+    log.add_argument("--date", help="dialogue date YYYY-MM-DD (default today)")
+    log.add_argument("--from-git", type=int, default=0, metavar="N", help="take the last N commits from git log")
+    log.add_argument("--commit", action="append", metavar="SHA=SUMMARY", help="explicit commit row (repeatable)")
     args = parser.parse_args()
     try:
         root = checked_path(args.root)
@@ -117,6 +143,8 @@ def main() -> int:
             return show_doctor(doctor(root), args.structural)
         if args.command == "secrets":
             return show_secrets(root, None if args.staged else scan_worktree(snapshot(root)))
+        if args.command == "devlog":
+            return devlog_entry(root, args)
         return finish(root, commit=args.command == "commit-check")
     except ValueError as error:
         # Our report/count failures are descriptive; arbitrary parser values stay redacted.

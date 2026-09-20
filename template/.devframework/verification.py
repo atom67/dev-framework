@@ -15,6 +15,7 @@ REQUIRED = (
     "docs/USE_CASES_SLICE_TEMPLATE.md", "docs/INVARIANTS.md", ".devframework/manifest.json", ".devframework/project.json",
     ".devframework/KNOWLEDGE_MAP.md",
     ".devframework/LESSONS.md", ".devframework/AGENTS_GUIDE.md", ".devframework/VERIFICATION.md",
+    ".devframework/DEVLOG.md", ".devframework/devlog.py",
     ".devframework/check.py", ".devframework/safety.py", ".devframework/verification.py",
     ".devframework/secrets_check.py", ".devframework/patterns/README.md",
     ".devframework/source_scope.py", ".devframework/test_evidence.py", ".devframework/run_unittest.py",

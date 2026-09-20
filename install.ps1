@@ -19,6 +19,8 @@ param(
     [Alias('WhatIf')][switch]$DryRun,
     [switch]$Recover,
     [switch]$SelfTest,
+    [switch]$Devlog,
+    [switch]$NoDevlog,
     [string]$PythonCommand = 'python'
 )
 
@@ -36,5 +38,7 @@ if ($Force) { $installArgs += '--force' }
 if ($Update) { $installArgs += '--update' }
 if ($DryRun) { $installArgs += '--dry-run' }
 if ($Recover) { $installArgs += '--recover' }
+if ($Devlog) { $installArgs += '--devlog' }
+if ($NoDevlog) { $installArgs += '--no-devlog' }
 & $PythonCommand @installArgs
 exit $LASTEXITCODE
