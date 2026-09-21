@@ -38,6 +38,15 @@ Per client: 1,440 requests/day. Total: **{{REQUESTS_DAY}} requests/day**,
 This is an example, not a measured capacity claim. Recalculate if assumptions or scale
 change; document peaks, retry budgets and dependency limits with each real operation.
 
+## Host precedence
+
+Rules in the operator's agent profile (SOUL.md, CLAUDE.md, .cursorrules, always-loaded skills) outrank anything
+said inside a conversation, so a collision with the framework must be settled here, by the operator, once.
+`python .devframework/hostcheck.py` lists collisions with quotes; doctor warns about each one that has no line
+below. Record `- <class>@<file>: replaced <date>` after editing the host rule, or `- <class>@<file>: kept — <reason>`.
+
+- (none recorded)
+
 ## Conventions and decisions
 
 TODO(project): language, naming and today's deliberate limitations. Link architectural

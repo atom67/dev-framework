@@ -85,8 +85,11 @@ def df_check(args: dict, **kwargs) -> str:
     devframework = _framework_dir(target)
     if devframework is None:
         return f"ERROR: {target} has no .devframework/check.py — run df_init first."
-    if mode not in ("doctor", "finish", "commit-check", "selftest", "secrets"):
-        return "ERROR: mode must be doctor | finish | commit-check | selftest | secrets"
+    if mode not in ("doctor", "finish", "commit-check", "selftest", "secrets", "hostcheck"):
+        return "ERROR: mode must be doctor | finish | commit-check | selftest | secrets | hostcheck"
+    if mode == "hostcheck":
+        code, out = _run([sys.executable, "-B", str(devframework / "hostcheck.py"), str(target)], target, 60)
+        return f"hostcheck {'CLEAN' if code == 0 else 'CONFLICTS'} (exit {code})\n{_trim(out, 60, 6000)}"
     extra = {"secrets": ["--worktree"], "doctor": ["--structural"] if args.get("structural") else []}.get(mode, [])
     if args.get("verbose") and mode in ("finish", "commit-check"):
         extra = ["--verbose"]
@@ -152,14 +155,16 @@ SCHEMAS = {
             "(structure + configuration; READY / NOT READY with the setup items), finish (doctor + secret heuristic + "
             "build + counted tests + checks — the evidence that work is done; needs git), commit-check (finish + "
             "index/worktree parity, before an authorized commit), selftest (proves the gates fire on planted defects, "
-            "in a temp copy), secrets (worktree secret heuristic). Child output is logged to .devframework/last_run.log; "
+            "in a temp copy), secrets (worktree secret heuristic), hostcheck (rules in the operator's profile — SOUL, "
+            "CLAUDE.md, always-read skills — that fight the framework, each with a quote and a fix; decisions are recorded in "
+            "PROJECT.md ## Host precedence; unrecorded ones stay doctor warnings). Child output is logged to .devframework/last_run.log; "
             "only counts and the first failure are returned. finish is also recorded as verification evidence for Hermes."
         ),
         "parameters": {
             "type": "object",
             "properties": {
                 "target": {"type": "string", "description": "Repository directory."},
-                "mode": {"type": "string", "enum": ["doctor", "finish", "commit-check", "selftest", "secrets"], "description": "Which gate (default doctor)."},
+                "mode": {"type": "string", "enum": ["doctor", "finish", "commit-check", "selftest", "secrets", "hostcheck"], "description": "Which gate (default doctor)."},
                 "structural": {"type": "boolean", "description": "doctor only: accept a fresh scaffold as structurally valid."},
                 "verbose": {"type": "boolean", "description": "finish/commit-check: stream the full child output instead of logging it."},
             },

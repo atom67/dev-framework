@@ -137,6 +137,13 @@ def brief(root: Path) -> str:
     title = next((line[2:] for line in read(root, "PROJECT.md").splitlines() if line.startswith("# ")), root.name)
     out.append(f"# {title} — session brief ({date.today().isoformat()})")
     out.append(doctor_line(root))
+    try:
+        import hostcheck
+        unresolved, resolved = hostcheck.report(root)
+        if unresolved or resolved:
+            out.append(f"host rules: {len(unresolved)} unresolved conflict(s), {len(resolved)} decided — `python .devframework/hostcheck.py` for the quotes and fixes")
+    except Exception as error:
+        out.append(f"host rules: check unavailable ({error})")
     branch = git(root, "symbolic-ref", "--short", "HEAD") or git(root, "rev-parse", "--abbrev-ref", "HEAD")  # works on an unborn branch too
     if branch:
         dirty = git(root, "status", "--porcelain")

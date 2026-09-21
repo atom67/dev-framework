@@ -12,7 +12,7 @@ Product: a command-line tool `python -m wordfreq FILE [FILE ...] [--top N] [--st
 
 Done means, in this order: the framework's project documents are filled from this description (no `TODO(project)` or template placeholders left); `docs/USE_CASES.md` lists every user-visible capability above with its `Test:` field pointing at a real test; unit tests exist and pass (isolated: temp files only); `python .devframework/check.py doctor` passes; `python .devframework/check.py finish` passes; work is committed.
 
-## Step 2 — Final report (paste this block, filled, as your last message)
+## Step 2 — Final report (your last message: the filled block under a `🛠️ Tech` heading, then a `💬 Message` block in plain language ending with what the operator must do next)
 
 ```
 ## DEV Framework eval report — Scenario S1 (variant: {{VARIANT}})
@@ -25,4 +25,5 @@ doctor: PASS|FAIL — <remaining items>     finish: PASS|FAIL|NOT RUN — <why>
 Self-estimate: tool calls ≈ <n>, model turns ≈ <n>, wall time ≈ <min> (the user verifies these from the session DB)
 Where you lost time / what was unclear in the framework docs: <≤5 bullets>
 Unconfirmed statements left for the operator: <list or "none">
+Host conflicts found / decided: <n found, n recorded in PROJECT.md ## Host precedence, or "none">
 ```

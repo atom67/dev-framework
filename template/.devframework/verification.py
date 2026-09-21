@@ -16,7 +16,7 @@ REQUIRED = (
     ".devframework/KNOWLEDGE_MAP.md",
     ".devframework/LESSONS.md", ".devframework/AGENTS_GUIDE.md", ".devframework/VERIFICATION.md",
     ".devframework/DEVLOG.md", ".devframework/devlog.py",
-    ".devframework/check.py", ".devframework/navigate.py", ".devframework/safety.py", ".devframework/verification.py",
+    ".devframework/check.py", ".devframework/navigate.py", ".devframework/hostcheck.py", ".devframework/safety.py", ".devframework/verification.py",
     ".devframework/secrets_check.py", ".devframework/patterns/README.md",
     ".devframework/source_scope.py", ".devframework/test_evidence.py", ".devframework/run_unittest.py",
     *[f".devframework/patterns/{name}.md" for name in
@@ -275,5 +275,10 @@ def doctor(root: Path) -> dict:
         warnings.append("Large AGENTS.md; inspect actual provider loading limits and scoped overrides")
     if child(root, "AGENTS.override.md").exists():
         warnings.append("AGENTS.override.md exists; verify active instructions in a fresh provider session")
+    try:
+        import hostcheck  # host rules that fight the framework; operator decisions live in PROJECT.md ## Host precedence
+        warnings.extend(hostcheck.report(root)[0])
+    except Exception as error:  # never let a host scan break the doctor
+        warnings.append(f"hostcheck unavailable: {error}")
     return {"errors": errors, "setup": sorted(set(setup)), "warnings": warnings,
             "ready": not errors and not setup}

@@ -1,4 +1,4 @@
-## Step 2 — Final report (paste this block, filled, as your last message)
+## Step 2 — Final report (your last message: the filled block under a `🛠️ Tech` heading, then a `💬 Message` block in plain language ending with what the operator must do next)
 
 ```
 ## DEV Framework eval report — Scenario {{SCENARIO}} (variant: {{VARIANT}})
@@ -11,4 +11,5 @@ doctor: PASS|FAIL — <remaining items>     finish: PASS|FAIL|NOT RUN — <why>
 Self-estimate: tool calls ≈ <n>, model turns ≈ <n>, wall time ≈ <min> (the user verifies these from the session DB)
 Where you lost time / what was unclear in the framework docs: <≤5 bullets>
 Unconfirmed statements left for the operator: <list or "none">
+Host conflicts found / decided: <n found, n recorded in PROJECT.md ## Host precedence, or "none">
 ```

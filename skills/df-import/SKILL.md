@@ -24,9 +24,14 @@ says READY. The documents are true, not decoration: no `TODO(project)` left, fac
    (`{python}` expands to the interpreter; `.devframework/run_unittest.py --start tests` is the built-in
    counted runner). Replace the example requirement and the example use cases with the agreed product;
    every user-visible capability is a `#### UC-### — title` with a `**Test:**` field and a traceability row.
-5. `df_check(target, "doctor")` → fix what it lists → `df_check(target, "finish")` once tests exist.
+5. `df_check(target, "hostcheck")` — rules in the operator's profile (SOUL, CLAUDE.md, always-read skills) that
+   fight the framework, with quotes and a fix each. Show the operator the list **once** and ask for one decision per
+   line (replace the host rule, or keep it). With authorization edit the host file (backup first) and record every
+   decision in `PROJECT.md` → `## Host precedence` as `- <class>@<file>: replaced <date> | kept — <reason>`.
+   Doctor keeps warning about any collision without a recorded line — also for rules added later.
+6. `df_check(target, "doctor")` → fix what it lists → `df_check(target, "finish")` once tests exist.
    `finish` needs a Git repository; initialise one if the operator agreed.
-6. Report in numbers: files created, cases written (covered / gap), doctor and finish results, what remains
+7. Report in numbers: files created, cases written (covered / gap), doctor and finish results, what remains
    unconfirmed for the operator.
 
 ## Rules that survive shortcuts

@@ -10,7 +10,7 @@ The repository at `{{WORK}}/notes-cli/` was built without the framework. Its doc
 
 Rules: every statement in the new documents is either read from the code/tests or taken from the existing notes — cite which; anything else goes to the "unconfirmed" list, not into the documents. **Nothing from the old files may be lost**: fold their content into the framework documents, then delete or replace the old files with a one-line pointer. Map every existing test to a `Test:` field in `docs/USE_CASES.md`; list capabilities that have no test as such. Do **not** change the behaviour of the code; the existing tests must still pass. Finish with `python .devframework/check.py doctor` passing.
 
-## Step 2 — Final report (paste this block, filled, as your last message)
+## Step 2 — Final report (your last message: the filled block under a `🛠️ Tech` heading, then a `💬 Message` block in plain language ending with what the operator must do next)
 
 ```
 ## DEV Framework eval report — Scenario S2 (variant: {{VARIANT}})
@@ -23,4 +23,5 @@ doctor: PASS|FAIL — <remaining items>     finish: PASS|FAIL|NOT RUN — <why>
 Self-estimate: tool calls ≈ <n>, model turns ≈ <n>, wall time ≈ <min> (the user verifies these from the session DB)
 Where you lost time / what was unclear in the framework docs: <≤5 bullets>
 Unconfirmed statements left for the operator: <list or "none">
+Host conflicts found / decided: <n found, n recorded in PROJECT.md ## Host precedence, or "none">
 ```

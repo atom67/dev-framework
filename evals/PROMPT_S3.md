@@ -10,7 +10,7 @@ The repository at `{{WORK}}/ledger/` was built without the framework and its doc
 
 Rules: as in a normal catch-up — every statement is read from code/tests/notes or confirmed by me; nothing from `README.md` may be lost. Where my answer contradicts what the code does today, do **not** change the code in this run: record the intended behaviour in `docs/USE_CASES.md` and register the difference as a defect in `docs/KNOWN_ERRORS.md` / `docs/BACKLOG.md`. Existing tests must still pass. Finish with `python .devframework/check.py doctor` passing.
 
-## Step 2 — Final report (paste this block, filled, as your last message)
+## Step 2 — Final report (your last message: the filled block under a `🛠️ Tech` heading, then a `💬 Message` block in plain language ending with what the operator must do next)
 
 ```
 ## DEV Framework eval report — Scenario S3 (variant: {{VARIANT}})
@@ -23,4 +23,5 @@ doctor: PASS|FAIL — <remaining items>     finish: PASS|FAIL|NOT RUN — <why>
 Self-estimate: tool calls ≈ <n>, model turns ≈ <n>, wall time ≈ <min> (the user verifies these from the session DB)
 Where you lost time / what was unclear in the framework docs: <≤5 bullets>
 Unconfirmed statements left for the operator: <list or "none">
+Host conflicts found / decided: <n found, n recorded in PROJECT.md ## Host precedence, or "none">
 ```
