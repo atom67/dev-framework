@@ -32,8 +32,10 @@
       0.30–0.47×, active seconds 0.47–0.75× of the skills baseline; quality equal or better (S3: 3/3 planted
       questions, no extras). Report `evals/runs/2026-09-21_plugin.md`
 - [x] Verified: no post-report ad-hoc scripts, no hub detour, foreign skills reported (`known-errors` 46k via SOUL)
-- [ ] Fix what the runs showed: doctor "profile link" message names the syntax; SETUP message / seed names the
-      counted test runner argv; seed root `.gitignore` with `__pycache__/`
+- [x] Fixed what the runs showed (2026-09-21): doctor names the exact profile-link path; the test-command SETUP
+      message names the counted runner argv and warns that bare unittest/pytest fails finish; seeded root `.gitignore`
+- [ ] Clean re-run of the plugin evals in `mastermind` (plugin and copied skills removed first, Desktop restarted):
+      S1–S3 + reply-shape column (target M/M with 💬 Message, 0 profile footers)
 - [ ] FOLLOWUP evals (new session on S1/S2 results) for skills and plugin — the "agent reads instead of
       re-deriving" metric
 
@@ -82,6 +84,22 @@ and the verdict against the ≤ 0.7× target, in plain language.
 - [ ] Fresh-profile eval runs as the second protocol column
 
 **Acceptance:** catalog entry merged or reviewed; README numbers match RESULTS.md.
+
+### 6. Custom skill: developing in the Hermes environment
+
+- [ ] Write `skills/hermes-dev/SKILL.md` (host-specific, for the framework author and Hermes plugin developers)
+      collecting every finding from this programme: plugin loader contract (`plugin.yaml` + `__init__.py`,
+      `register(ctx)`, tool schema shape, `register_skill` namespacing, plugins discovered at **process** start —
+      Desktop needs a restart, `hermes plugins install file://…`), skills-guard blocking any skill that mentions
+      the context files, verify-on-stop and how `scripts/run_tests.sh` + `record_terminal_result` satisfy it,
+      context-file precedence (`.hermes.md` > AGENTS.md, cwd-only, promptware scan), SOUL rule stacking and
+      the reply-shape conflict, `state.db` schema for measurement, git-bash vs Windows paths, Desktop has no
+      agent-plugin UI (install from chat), `hermes profile create --clone-from`, quotas shared across profiles
+- [ ] Verify each statement against the current Hermes checkout (version-stamped); mark anything unverified
+- [ ] Reference it from README (host matrix) and from `evals/README.md`
+
+**Acceptance:** a new session given only this skill can install, evaluate and debug the plugin without re-deriving
+any of the above.
 
 ## Deliberate limitations
 

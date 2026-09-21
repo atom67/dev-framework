@@ -49,7 +49,9 @@ class DevlogInstall(WorkspaceTest):
         self.init(scale="1,000 users")
         cfg = json.loads((self.target / ".devframework" / "project.json").read_text(encoding="utf-8"))
         self.assertEqual(cfg["devlog"], {"enabled": False, "dir": "docs/devlog", "commit": False})
-        self.assertFalse((self.target / ".gitignore").exists())
+        ignore = (self.target / ".gitignore").read_text(encoding="utf-8")  # seeded, but no devlog line
+        self.assertIn("__pycache__/", ignore)
+        self.assertNotIn("devlog", ignore)
 
     def test_opt_in_without_remote_keeps_local_and_ignores_dir(self):
         self.init(scale="1,000 users", devlog=True)

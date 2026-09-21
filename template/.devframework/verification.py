@@ -57,7 +57,10 @@ def load_config(root: Path) -> tuple[dict, list[str], list[str]]:
         if value is None:
             reason = config.get("build_not_applicable")
             if name != "build" or not isinstance(reason, str) or not reason.strip():
-                setup.append(f"Configure {name} command" + (" or a build_not_applicable reason" if name == "build" else ""))
+                hint = (" or a build_not_applicable reason" if name == "build" else
+                        ' as an argv that writes counted evidence, e.g. ["{python}", "-B", ".devframework/run_unittest.py", "--start", "tests"]'
+                        " (a bare `python -m unittest` or `pytest` passes doctor but fails finish: no counted evidence)")
+                setup.append(f"Configure {name} command" + hint)
         elif not valid_command(value):
             errors.append(f"{name} must be a nonempty argument array, not a shell string")
     checks = commands.get("checks")
@@ -259,7 +262,8 @@ def doctor(root: Path) -> dict:
         errors.append("AGENTS.md does not route to neutral project facts")
     profile = config.get("profile")
     if profile and f".devframework/profiles/{profile}.md" not in texts.get("PROJECT.md", ""):
-        errors.append("PROJECT.md profile link disagrees with project.json")
+        errors.append(f"PROJECT.md must keep the selected-profile link for project.json's profile: "
+                      f"the literal path `.devframework/profiles/{profile}.md` (e.g. `[the selected profile](.devframework/profiles/{profile}.md)`)")
     ids = re.findall(r"(?m)^\|\s*((?:FR|NFR)-\d+)\s*\|", unfenced(texts.get("docs/REQUIREMENTS.md", "")))
     duplicates = sorted({value for value in ids if ids.count(value) > 1})
     if duplicates:

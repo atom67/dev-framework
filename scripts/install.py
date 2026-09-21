@@ -47,7 +47,7 @@ def parameters(name: str, scale: str, profile: str) -> dict:
 
 
 def seed_file(path: str) -> bool:
-    return path == "PROJECT.md" or path == ".devframework/project.json" or path.startswith("docs/")
+    return path in ("PROJECT.md", ".devframework/project.json", ".gitignore") or path.startswith("docs/")
 
 
 def ask_devlog() -> bool:

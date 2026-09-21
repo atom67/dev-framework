@@ -1,0 +1,6 @@
+# Seeded by DEV Framework once; project-owned afterwards. Generated caches stay out of the first commit.
+# Do not ignore .env or build outputs here: the framework's secret and source scans must still see them.
+__pycache__/
+*.pyc
+.pytest_cache/
+node_modules/
