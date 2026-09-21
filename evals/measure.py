@@ -18,7 +18,7 @@ import sys
 from collections import Counter
 
 REASONING_COLS = ("reasoning", "reasoning_content", "reasoning_details", "codex_reasoning_items")
-OUR_SKILLS = {"import-dev-framework", "catch-up", "df-import", "df-catch-up"}  # framework-owned skill names
+OUR_SKILLS = {"import-dev-framework", "catch-up", "df-import", "df-catch-up", "dev-framework:df-import", "dev-framework:df-catch-up"}  # framework-owned skill names
 
 
 def db_path(profile):
@@ -52,10 +52,12 @@ def measure(conn, session_id=None):
     tool_calls = s["tool_call_count"] or sum(tools.values())
     # Questions reach the user either as a plain assistant turn (next message is a user turn) or via the
     # `clarify` tool; time between asking and the answer is the user's, not the agent's.
+    # Waiting = every gap that ends with the user speaking (clarify answer, plain-question answer, re-prompt
+    # after a restart); the first user message starts the clock and is not a gap.
     waiting = 0.0
     prev = None
     for m in msgs:
-        if m["role"] == "tool" and m["tool_name"] == "clarify" and prev is not None:
+        if prev is not None and ((m["role"] == "tool" and m["tool_name"] == "clarify") or m["role"] == "user"):
             waiting += m["timestamp"] - prev["timestamp"]
         prev = m
     questions = tools.get("clarify", 0) + max(roles.get("user", 0) - 1, 0)
@@ -114,7 +116,7 @@ def selftest():
     """)
     r = measure(c)
     assert r["session"] == "new", r
-    assert r["seconds"] == 100 and r["active_seconds"] == 40 and r["assistant_msgs_with_reasoning"] == 2, r
+    assert r["seconds"] == 100 and r["active_seconds"] == 36 and r["assistant_msgs_with_reasoning"] == 2, r
     assert r["tool_calls"] == 5 and r["questions_to_user"] == 2 and r["tools"]["terminal"] == 2, r
     assert r["foreign_skills"].startswith("known-errors(") and r["foreign_skill_bytes"] == 49, r
     print("selftest ok")

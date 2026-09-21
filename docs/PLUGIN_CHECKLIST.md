@@ -27,12 +27,13 @@
       finish, selftest, .hermes.md, scripts/run_tests.sh; 100 tests green (2026-09-21)
 - [x] Tech / Message reply rule, parallel subagents and per-reply checklist copy present in AGENTS.md,
       .hermes.md and both skills (audited 2026-09-21)
-- [ ] Commit v0.4.0 (authorized 2026-09-21)
-- [ ] Plugin evals S1–S3 in profile `mastermind` (same model as baseline): install via
-      `hermes plugins install file://D:/DEV/DEV-Framework`, prompts `evals/prompt_s*_plugin.txt`,
-      `evals/measure.py`, rows in `evals/RESULTS.md`, report `evals/runs/<date>_plugin.md`
-- [ ] Verify in the plugin runs: no post-report "ad-hoc verification" (verify-on-stop sees finish), no hub
-      install detour, brief used at start, foreign-skill bytes reported
+- [x] Commit v0.4.0 (ff0386d, 2026-09-21)
+- [x] Plugin evals S1–S3 in profile `mastermind` (2026-09-21, gpt-5.6-terra): calls 0.33–0.55×, input tokens
+      0.30–0.47×, active seconds 0.47–0.75× of the skills baseline; quality equal or better (S3: 3/3 planted
+      questions, no extras). Report `evals/runs/2026-09-21_plugin.md`
+- [x] Verified: no post-report ad-hoc scripts, no hub detour, foreign skills reported (`known-errors` 46k via SOUL)
+- [ ] Fix what the runs showed: doctor "profile link" message names the syntax; SETUP message / seed names the
+      counted test runner argv; seed root `.gitignore` with `__pycache__/`
 - [ ] FOLLOWUP evals (new session on S1/S2 results) for skills and plugin — the "agent reads instead of
       re-deriving" metric
 
