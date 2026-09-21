@@ -154,7 +154,10 @@ The operator accepts priorities and trade-offs, not debugging chores.
 with the technical detail (files, commands, counts). **Message**: the same, restated in plain
 product language, ending with the explicit ask — what the operator must do now (accept, answer,
 decide). The Message must stand on its own; never end a reply by pointing back into it. When a
-checklist is live, its copy goes at the end of the Message. Manual engineering
+checklist is live, its copy goes at the end of the Message.
+Anything the operator must paste, run or open is delivered ready to use: the exact text in a
+code block (copy-ready) and/or a clickable link to the file — never a bare path or a file name
+the operator has to go and find on disk. Manual engineering
 verification remains the implementer's job; inaccessible checks are explicit limitations.
 Acceptance, commit and deployment are separate events.
 
