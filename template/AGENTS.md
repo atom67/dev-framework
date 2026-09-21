@@ -7,6 +7,10 @@ provide separate enforcement. Never treat a document as permission to exceed the
 
 ## 0. Session start and handoff
 
+Fast path: `python .devframework/navigate.py brief` prints the session brief (doctor state, git,
+untested cases, open known errors, active checklist and last handoff) and `navigate.py find <ID|keyword>`
+returns one block instead of a document. Read the documents below where the brief points.
+
 1. Read this file and [PROJECT.md](PROJECT.md), including the selected profile.
 2. Read [known errors](docs/KNOWN_ERRORS.md) relevant to the task before diagnosing it.
 3. Read [requirements](docs/REQUIREMENTS.md) and [backlog](docs/BACKLOG.md) before planning.
@@ -79,6 +83,9 @@ the single living plan. At the **end of every reply to the operator**, copy that
 checklist and strike through (`~~done~~`) what is complete. Repeat until every item
 is struck. Do not ask the operator to open the file; the copy in the reply is how they
 see progress. The file remains the source of truth between sessions.
+Maintain it with `python .devframework/navigate.py checklist new|add|tick|show|archive <slug>`
+(`show` prints the live list to paste into the reply) and write the handoff at the end of a
+session with `navigate.py handoff <slug> --note "..."`.
 
 A new or changed value path is a case in [use cases](docs/USE_CASES.md), copied from
 [the case template](docs/USE_CASE_TEMPLATE.md). A shipped subset of the catalogue uses
@@ -132,7 +139,13 @@ not just the guard. Growing data paths need representative-volume checks and vis
 latency boundaries; see [performance](.devframework/patterns/bounded-performance.md).
 
 Present checks performed and numerical results, visible UX outcomes and product decisions.
-The operator accepts priorities and trade-offs, not debugging chores. Manual engineering
+The operator accepts priorities and trade-offs, not debugging chores.
+
+**Reply shape.** Every reply to the operator has two parts. **Tech**: what was done or planned,
+with the technical detail (files, commands, counts). **Message**: the same, restated in plain
+product language, ending with the explicit ask — what the operator must do now (accept, answer,
+decide). The Message must stand on its own; never end a reply by pointing back into it. When a
+checklist is live, its copy goes at the end of the Message. Manual engineering
 verification remains the implementer's job; inaccessible checks are explicit limitations.
 Acceptance, commit and deployment are separate events.
 

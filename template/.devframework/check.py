@@ -16,6 +16,7 @@ from verification import doctor, load_config
 from source_scope import identity, require_index_parity, scan_worktree, snapshot
 from test_evidence import validate
 import devlog as devlog_mod
+import navigate
 
 
 def show_doctor(report: dict, structural: bool) -> int:
@@ -44,7 +45,12 @@ def show_secrets(root: Path, report: dict | None = None) -> int:
     return 1 if report["findings"] else 0
 
 
-def finish(root: Path, *, commit: bool = False) -> int:
+LOG = ".devframework/last_run.log"
+
+
+def finish(root: Path, *, commit: bool = False, verbose: bool = False) -> int:
+    navigate.index(root)  # regenerated before the snapshot so the digest covers a fresh docs/INDEX.md
+    (root / LOG).write_bytes(b"")
     before = snapshot(root)
     report = doctor(root)
     result = show_doctor(report, False)
@@ -77,7 +83,12 @@ def finish(root: Path, *, commit: bool = False) -> int:
                 env = {**os.environ, "PYTHONDONTWRITEBYTECODE": "1"}
                 if label == "test":
                     env.update(DEVFRAMEWORK_TEST_REPORT=str(evidence_path), DEVFRAMEWORK_RUN_ID=run_id)
-                run = subprocess.run(argv, cwd=root, timeout=config["timeout_seconds"], shell=False, env=env)
+                # Quiet by default: child output goes to the log, the agent reads counts and the first failure.
+                run = subprocess.run(argv, cwd=root, timeout=config["timeout_seconds"], shell=False, env=env,
+                                     capture_output=not verbose)
+                if not verbose:
+                    with open(root / LOG, "ab") as log:
+                        log.write(f"== {label}: {' '.join(argv)}\n".encode("utf-8") + run.stdout + run.stderr)
                 if label == "test" and run.returncode == 0:
                     counts = validate(evidence_path, run_id, config["test_evidence"]["max_skipped"])
         except subprocess.TimeoutExpired:
@@ -85,6 +96,9 @@ def finish(root: Path, *, commit: bool = False) -> int:
             return 1
         if run.returncode:
             print(f"FAILED {label}: exit {run.returncode}")
+            if not verbose:
+                tail = (run.stdout + run.stderr).decode("utf-8", errors="replace").strip().splitlines()[-20:]
+                print("\n".join(tail) + f"\n(full output: {LOG})", file=sys.stderr)
             return 1
         print(f"PASSED {label}", flush=True)
         if snapshot(root) != before:
@@ -100,6 +114,43 @@ def finish(root: Path, *, commit: bool = False) -> int:
     if reminder:
         print(reminder)
     return 0
+
+
+def selftest(root: Path) -> int:
+    """Plant what each gate must catch, in a temporary copy of the source, and expect the failure.
+
+    Covers the two mechanical gates (catalogue contract, secret heuristic). The cost audit is a reading
+    exercise (see catch-up skill §5) and is not simulated here.
+    """
+    files = snapshot(root)
+    results = []
+    with tempfile.TemporaryDirectory(prefix="devframework-selftest-") as temporary:
+        copy = Path(temporary) / "copy"
+        for name, data in files.items():
+            if data is not None:
+                target = copy / name
+                target.parent.mkdir(parents=True, exist_ok=True)
+                target.write_bytes(data)
+        for args in (("init", "-q"), ("add", "-A")):
+            subprocess.run(["git", "-C", str(copy), *args], capture_output=True, timeout=60, check=True)
+        baseline = len(doctor(copy)["errors"])
+        catalogue = copy / "docs" / "USE_CASES.md"
+        original = catalogue.read_bytes()
+        catalogue.write_bytes(original + "\n#### UC-999 — planted case without a Test field\n- **Trigger:** planted by selftest\n".encode("utf-8"))
+        caught = len(doctor(copy)["errors"]) > baseline
+        catalogue.write_bytes(original)
+        restored = len(doctor(copy)["errors"]) == baseline
+        results.append(("doctor contract", caught and restored, "a UC without **Test:** was rejected, then accepted after restore"))
+        planted = copy / "planted_by_selftest.txt"
+        planted.write_text("token = ghp_" + "A" * 36 + "\n", encoding="utf-8")
+        found = bool(scan_worktree(snapshot(copy))["findings"])
+        planted.unlink()
+        clean = not scan_worktree(snapshot(copy))["findings"] or bool(scan_worktree(files)["findings"])
+        results.append(("secret heuristic", found and clean, "a planted token-shaped literal was reported, then gone after restore"))
+    for name, ok, detail in results:
+        print(f"SELFTEST {name}: {'PASS' if ok else 'FAIL'} — {detail if ok else 'the gate did not fire as expected'}")
+    print("SELFTEST cost audit: NOT SIMULATED — read repeating operations by hand (catch-up skill §5)")
+    return 0 if all(ok for _, ok, _ in results) else 1
 
 
 def devlog_entry(root: Path, args) -> int:
@@ -127,8 +178,9 @@ def main() -> int:
     scope = secret.add_mutually_exclusive_group(required=True)
     scope.add_argument("--staged", action="store_true")
     scope.add_argument("--worktree", action="store_true")
-    sub.add_parser("finish")
-    sub.add_parser("commit-check")
+    for name in ("finish", "commit-check"):
+        sub.add_parser(name).add_argument("--verbose", action="store_true", help="stream child output instead of logging it")
+    sub.add_parser("selftest", help="prove the doctor contract and the secret heuristic fire, in a temp copy")
     log = sub.add_parser("devlog", help="create a devlog skeleton (optional rule, see DEVLOG.md)")
     log.add_argument("--agent", action="append", required=True, metavar="CLIENT-MODEL",
                      help="who drove the dialogue, e.g. claudecode-OPUS5; repeat once for the second model when models switched")
@@ -145,7 +197,9 @@ def main() -> int:
             return show_secrets(root, None if args.staged else scan_worktree(snapshot(root)))
         if args.command == "devlog":
             return devlog_entry(root, args)
-        return finish(root, commit=args.command == "commit-check")
+        if args.command == "selftest":
+            return selftest(root)
+        return finish(root, commit=args.command == "commit-check", verbose=args.verbose)
     except ValueError as error:
         # Our report/count failures are descriptive; arbitrary parser values stay redacted.
         if type(error) is ValueError:

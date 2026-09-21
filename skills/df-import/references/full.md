@@ -1,10 +1,3 @@
----
-name: import-dev-framework
-description: Install the DEV Framework into a repository — lay in AGENTS.md, PROJECT.md, the docs/ set including the use-case catalogue and copy templates, fill project facts from the code, and verify with doctor that required files and the catalogue contract are present. Use when the operator says "import the framework", "install DEV Framework", "set up AGENTS.md", "adopt these rules in this project", "внедри фреймворк", "поставь правила в проект".
-argument-hint: "<target-repo-path> [project name]"
-allowed-tools: Bash, Read, Write, Edit, Glob, Grep, AskUserQuestion
----
-
 # Import the DEV Framework into a repository
 
 The package is a process layer, not a library. Installing it means the target repository

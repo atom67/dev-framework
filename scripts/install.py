@@ -4,6 +4,7 @@ from __future__ import annotations
 import argparse
 from datetime import datetime, timezone
 import json
+import os
 from pathlib import Path
 import re
 import sys
@@ -34,9 +35,11 @@ def read_json(path: Path) -> dict:
 def parameters(name: str, scale: str, profile: str) -> dict:
     if not isinstance(name, str) or not name.strip() or len(name) > 120 or any(ord(c) < 32 for c in name) or "{{" in name:
         raise ValueError("Project name must be 1..120 printable characters, without template markers")
-    match = re.fullmatch(r"([1-9]\d*|[1-9]\d{0,2}(?:,\d{3})+) ([A-Za-z][A-Za-z -]{0,31})", scale)
+    # A leading integer and any short unit text: "50,000 users", "1 user (personal tool)", "200 devices / 3 sites".
+    scale = " ".join((scale or "").split())  # collapse whitespace and newlines
+    match = re.fullmatch(r"([1-9]\d*|[1-9]\d{0,2}(?:,\d{3})+) ([^{}|]{1,60})", scale)
     if not match:
-        raise ValueError("Scale must be an integer and unit, e.g. '50,000 users'")
+        raise ValueError("Scale must start with an integer followed by a unit, e.g. '50,000 users' or '1 user (personal tool)'")
     count = int(match[1].replace(",", ""))
     if count > 1_000_000_000 or profile not in PROFILES:
         raise ValueError("Scale exceeds 1 billion or profile is unknown")
@@ -216,6 +219,8 @@ def apply_plan(target: Path, plan: list[dict], manifest: dict) -> str | None:
             if current != item["old"]:
                 raise ValueError(f"File changed during install: {item['path']}")
             atomic_write(path, item["new"])
+            if item["path"].endswith(".sh") and os.name != "nt":
+                os.chmod(path, 0o755)  # scripts/run_tests.sh must be runnable as `scripts/run_tests.sh`
     except BaseException:
         # If recovery itself fails, keep marker/backups and require explicit --recover.
         restore_pending(target)

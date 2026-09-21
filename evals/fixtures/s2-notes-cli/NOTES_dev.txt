@@ -1,0 +1,10 @@
+dev notes (me to me)
+
+- why json not sqlite: <500 notes, want the file greppable and syncable via dropbox. whole file rewritten on save,
+  write goes to .tmp then os.replace so a crash never leaves a half file.
+- ids: max+1. so a middle id is never reused, but rm of the LAST note frees its id. known + accepted (file stays tiny,
+  no counter to keep). test pins exactly this.
+- tags: sorted+dedup on add so the file diff is stable.
+- find: substring, case-insensitive, AND over tags (all given tags must be on the note). empty query = all notes.
+- created = date only, no time, local date. good enough.
+- error policy: unknown id on rm -> message on stderr, exit 1. everything else is a normal traceback.

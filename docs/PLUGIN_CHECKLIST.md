@@ -1,0 +1,110 @@
+# DEV Framework as a product — plugin, hosts, evals
+
+**Started:** 2026-09-21
+**Status:** in progress
+
+## Scope agreed with the operator
+
+- In: DEV Framework for beginner/intermediate vibe-coders so agents document work and read the documents
+  instead of re-deriving context; measured by tool calls / seconds / reasoning per session and by quality
+  (use case ↔ module ↔ test). Hermes first, then Claude Code, Cursor, Codex.
+- Decided 2026-09-21: three layers in one repository — **core** (template + scripts, any host, stdlib) →
+  **skills** (agentskills.io SKILL.md, every host) → **adapters** (Hermes plugin.yaml/__init__.py, Claude Code
+  plugin manifest + hooks; Cursor/Codex need none). A feature lands in core first, the skill points at it,
+  the adapter only wraps. One VERSION.
+- Decided 2026-09-21: `hostcheck` in doctor comes **after** the plugin eval, so effects are not mixed.
+- Decided 2026-09-21: the reply shape Tech / Message (ending with the explicit ask) is a framework rule;
+  parallel subagents and the checklist copied at the end of every reply stay mandatory in every host
+  context file (AGENTS.md, .hermes.md, skills).
+- Out (for now): MCP server over the tools — only if Claude Code evals show the agent needs explicit tools;
+  lite profile and GUIDE split — operator decision pending (TOKEN_BUDGET §D).
+
+## Portions
+
+### 1. Plugin v0.4.0 measured against the skills baseline
+
+- [x] Plugin built: df_init / df_check / df_nav, bundled skills df-import / df-catch-up, navigate.py, quiet
+      finish, selftest, .hermes.md, scripts/run_tests.sh; 100 tests green (2026-09-21)
+- [x] Tech / Message reply rule, parallel subagents and per-reply checklist copy present in AGENTS.md,
+      .hermes.md and both skills (audited 2026-09-21)
+- [ ] Commit v0.4.0 (authorized 2026-09-21)
+- [ ] Plugin evals S1–S3 in profile `mastermind` (same model as baseline): install via
+      `hermes plugins install file://D:/DEV/DEV-Framework`, prompts `evals/prompt_s*_plugin.txt`,
+      `evals/measure.py`, rows in `evals/RESULTS.md`, report `evals/runs/<date>_plugin.md`
+- [ ] Verify in the plugin runs: no post-report "ad-hoc verification" (verify-on-stop sees finish), no hub
+      install detour, brief used at start, foreign-skill bytes reported
+- [ ] FOLLOWUP evals (new session on S1/S2 results) for skills and plugin — the "agent reads instead of
+      re-deriving" metric
+
+**Acceptance:** a table skills vs plugin per scenario (seconds, calls, reasoning, questions, quality columns)
+and the verdict against the ≤ 0.7× target, in plain language.
+
+### 2. Host conflicts caught by doctor (`hostcheck`)
+
+- [ ] `.devframework/hostcheck.py`: find host context (HERMES_HOME SOUL.md, ~/.claude/CLAUDE.md + rules,
+      ~/.codex/AGENTS.md, .cursorrules / .cursor/rules), detect conflict classes with file:line quotes:
+      per-reply blocks on both sides · "read skill X before any task" · test/commit rules against the gate ·
+      bans on files the framework maintains · duplicate rule sources
+- [ ] `## Host precedence` register in PROJECT.md template; doctor WARNING for a detected conflict with no
+      recorded decision; re-checked on every doctor/finish (SOUL edited later → surfaces again)
+- [ ] df-import / df-catch-up: step "read host rules, list collisions, record the operator's decisions"
+- [ ] Test: planted SOUL with a per-reply footer and a "commit after every change" rule → two warnings;
+      recorded decisions → none
+- [ ] Re-run S2 plugin eval in `mastermind` to see the register in action
+
+**Acceptance:** doctor output on the owner's real profile listing the actual collisions (known-errors skill,
+🟢 footer, RED-first) with their recorded decisions.
+
+### 3. Second host: Claude Code adapter
+
+- [ ] `.claude-plugin/plugin.json` + `skills/` reuse + `SessionStart` hook injecting `navigate.py brief`
+      when cwd has `.devframework/`
+- [ ] Evals S1–S3 in Claude Code (same fixtures, same prompts, measure from the Claude session log)
+- [ ] README host matrix: Hermes / Claude Code / Cursor / Codex — what works, how installed
+
+**Acceptance:** S2 passes in Claude Code with the same quality columns; brief appears without a call.
+
+### 4. Cursor and Codex via skills only
+
+- [ ] Confirm both load `skills/df-*/SKILL.md` unchanged (agentskills.io); note any frontmatter differences
+- [ ] Smoke S1 in each (no measurement harness yet — record calls by hand)
+
+**Acceptance:** one paragraph per host in README saying what was verified.
+
+### 5. Public release
+
+- [ ] Operator decisions: lite profile (4 documents) for novices; GUIDE split (agent-facing vs human-facing)
+- [ ] Sanitizer/PII pass (evals fixtures, docs, memory references) — nothing personal in the public tree
+- [ ] Push to GitHub; plugin-catalog entry PR in NousResearch/hermes-agent (`plugin-catalog/dev-framework.yaml`,
+      40-hex SHA pin, capabilities from `hermes plugins doctor` on upstream main); Discord
+      `#plugins-skills-and-skins` post with the eval numbers
+- [ ] Fresh-profile eval runs as the second protocol column
+
+**Acceptance:** catalog entry merged or reviewed; README numbers match RESULTS.md.
+
+## Deliberate limitations
+
+- Interference is measured by skill_view bytes and by reading the dialogue; no automatic "conflict happened"
+  detector in the evals yet — hostcheck (portion 2) is the first step.
+- `measure.py` reads Hermes state.db only; other hosts need their own log readers.
+- The cost audit is not simulated by selftest (reading exercise by design).
+
+## Handoff — update at every portion boundary and provider switch
+
+- Branch/base commit and task-owned uncommitted changes: `main`; plugin v0.4.0 work uncommitted until the
+  authorized commit in portion 1.
+- Current portion and next concrete step: portion 1 — commit, then the operator runs the three plugin prompts.
+- Agreed decisions and links to their source of truth: this file (Scope); `docs/TOKEN_BUDGET_2026-09-20.md`.
+- Commands/checks actually run, date, result/counts: `python scripts/verify.py` 2026-09-21 — 100 tests OK,
+  0 secret suspects; plugin loaded in a temp HERMES_HOME, three tools dispatched through the registry.
+- Checks not run, reason and remaining risk: plugin evals (need the commit); `df_check finish` evidence
+  recording inside a live Hermes session (unit-level only).
+- Known errors or deliberate limits affecting continuation: skills hub install blocked by skills-guard —
+  the plugin is the distribution form.
+- Acceptance/commit/deploy authorization actually received: commit authorized 2026-09-21 (chat); no push.
+
+## Product decisions or external authorization still needed
+
+- [ ] Lite profile as the default for novices (cuts 5 of 9 documents)
+- [ ] GUIDE split of the templates
+- [ ] Public repository name and the moment of the first push

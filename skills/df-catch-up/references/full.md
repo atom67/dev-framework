@@ -1,10 +1,3 @@
----
-name: catch-up
-description: Reconstruct the DEV Framework documentation set from a codebase that was already built without it — requirements, architecture, use cases, known errors, backlog, regression plan, release procedure — plus the cost and secret audits, with everything unverifiable marked as unconfirmed rather than guessed. Use when the operator says "catch up the docs", "restore documentation", "we already have code, apply the framework", "backfill AGENTS docs", "восстанови документацию", "подтяни доки под фреймворк".
-argument-hint: "<target-repo-path>"
-allowed-tools: Bash, Read, Write, Edit, Glob, Grep, AskUserQuestion
----
-
 # Catch up the documentation on an existing codebase
 
 The framework assumes documents that grew alongside the code. This skill is for the

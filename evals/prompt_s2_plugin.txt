@@ -1,0 +1,32 @@
+# DEV Framework evaluation — Scenario S2: migrate scattered-but-complete documentation (variant: plugin)
+
+You are being timed and every tool call is counted. Work autonomously: do not ask for permission to run the steps below. Everything you need is in the files; a question to me should not be necessary (if you do ask, it is counted).
+
+## Step 0 — Install DEV Framework
+Install DEV Framework **from scratch** as a Hermes plugin (nothing of it is installed yet):
+
+1. `hermes plugins install atom67/dev-framework` then `hermes plugins enable dev-framework` (if the tools `df_init`,
+   `df_check`, `df_nav` are not in your tool list after enabling, restart the session and continue).
+2. Use the tools, not the package: `df_init` installs, `df_check` runs the gates, `df_nav` navigates. Read the bundled
+   skill once with `skill_view("dev-framework:df-import")` (new project) or `skill_view("dev-framework:df-catch-up")`
+   (existing code) and follow it. Do not clone the framework repository and do not read its README.
+
+## Step 1 — Task
+The repository at `D:/dftest/ps2/notes-cli/` was built without the framework. Its documentation is complete but scattered across `README.md`, `NOTES_dev.txt`, `docs/ideas.md`, `TODO.md` and `tests/README.md`. Bring it under DEV Framework with the `dev-framework:df-catch-up` skill (install the framework into the repo first; project name **notes**, scale target **1 user (personal tool)**, profile **generic**, devlog **off**; initialise Git and commit at the end).
+
+Rules: every statement in the new documents is either read from the code/tests or taken from the existing notes — cite which; anything else goes to the "unconfirmed" list, not into the documents. **Nothing from the old files may be lost**: fold their content into the framework documents, then delete or replace the old files with a one-line pointer. Map every existing test to a `Test:` field in `docs/USE_CASES.md`; list capabilities that have no test as such. Do **not** change the behaviour of the code; the existing tests must still pass. Finish with `python .devframework/check.py doctor` passing.
+
+## Step 2 — Final report (paste this block, filled, as your last message)
+
+```
+## DEV Framework eval report — Scenario S2 (variant: plugin)
+Install: <commands you ran; what failed and how you recovered>
+Steps taken: <numbered, one line each>
+Questions asked to the user: <N> — <list each question in one line>
+Files created / modified: <list>
+Tests: <command> — passed <n> / failed <n> / skipped <n>
+doctor: PASS|FAIL — <remaining items>     finish: PASS|FAIL|NOT RUN — <why>
+Self-estimate: tool calls ≈ <n>, model turns ≈ <n>, wall time ≈ <min> (the user verifies these from the session DB)
+Where you lost time / what was unclear in the framework docs: <≤5 bullets>
+Unconfirmed statements left for the operator: <list or "none">
+```

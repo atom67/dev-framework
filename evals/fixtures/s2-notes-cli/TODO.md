@@ -1,0 +1,4 @@
+- [x] tests for store (ids, delete, roundtrip)
+- [x] tests for search
+- [ ] test for cli rm exit code (manual check only so far: works)
+- [ ] edit command (see docs/ideas.md)

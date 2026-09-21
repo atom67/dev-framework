@@ -9,14 +9,14 @@ from urllib.parse import unquote, urlsplit
 from safety import checked_path, child
 
 REQUIRED = (
-    "AGENTS.md", "CLAUDE.md", "PROJECT.md", "docs/REQUIREMENTS.md", "docs/BACKLOG.md",
+    "AGENTS.md", "CLAUDE.md", ".hermes.md", "PROJECT.md", "scripts/run_tests.sh", "docs/REQUIREMENTS.md", "docs/BACKLOG.md",
     "docs/ARCHITECTURE.md", "docs/KNOWN_ERRORS.md", "docs/REGRESSION_TEST.md", "docs/RELEASE.md",
     "docs/CHECKLIST_TEMPLATE.md", "docs/USE_CASES.md", "docs/USE_CASE_TEMPLATE.md",
     "docs/USE_CASES_SLICE_TEMPLATE.md", "docs/INVARIANTS.md", ".devframework/manifest.json", ".devframework/project.json",
     ".devframework/KNOWLEDGE_MAP.md",
     ".devframework/LESSONS.md", ".devframework/AGENTS_GUIDE.md", ".devframework/VERIFICATION.md",
     ".devframework/DEVLOG.md", ".devframework/devlog.py",
-    ".devframework/check.py", ".devframework/safety.py", ".devframework/verification.py",
+    ".devframework/check.py", ".devframework/navigate.py", ".devframework/safety.py", ".devframework/verification.py",
     ".devframework/secrets_check.py", ".devframework/patterns/README.md",
     ".devframework/source_scope.py", ".devframework/test_evidence.py", ".devframework/run_unittest.py",
     *[f".devframework/patterns/{name}.md" for name in

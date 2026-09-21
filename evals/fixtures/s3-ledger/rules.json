@@ -1,0 +1,7 @@
+[
+  {"match": "coffee", "category": "food", "priority": 1},
+  {"match": "starbucks", "category": "treats", "priority": 5},
+  {"match": "rent", "category": "housing", "priority": 1},
+  {"match": "uber", "category": "transport", "priority": 2},
+  {"match": "uber eats", "category": "food", "priority": 4}
+]

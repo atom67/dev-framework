@@ -2,3 +2,6 @@
 /temp/
 __pycache__/
 *.pyc
+
+# eval answer keys: the agent clones this repo during a run and must not see them
+evals/private/

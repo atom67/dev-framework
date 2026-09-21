@@ -2,6 +2,10 @@
 
 ## In progress
 
+- DEV Framework as a product (Hermes plugin v0.4.0, host adapters, evals, hostcheck) — authorized
+  2026-09-21; checklist [PLUGIN_CHECKLIST.md](PLUGIN_CHECKLIST.md); token analysis
+  [TOKEN_BUDGET_2026-09-20.md](TOKEN_BUDGET_2026-09-20.md).
+
 - Second-review hardening — authorized 2026-08-31; [PLAN.md](PLAN.md), portions 5-8.
   False-green verification, common secret formats and source-lesson coverage fixed;
   79 tests passed. Disposable pilot has real red/green evidence; native provider handoff
