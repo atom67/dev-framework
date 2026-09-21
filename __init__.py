@@ -74,7 +74,9 @@ def df_init(args: dict, **kwargs) -> str:
     summary = [line for line in out.splitlines() if line.strip() and line[0] not in ' \t{}"'][-6:]  # skip the JSON plan
     return ("INIT OK: " + str(target) + "\n" + "\n".join(summary) +
             "\nNext: fill PROJECT.md and docs/ARCHITECTURE.md (no TODO(project) left), set the test command in "
-            ".devframework/project.json, write docs/USE_CASES.md, then df_check doctor. Contract: df_nav contract.")
+            ".devframework/project.json, write docs/USE_CASES.md, then df_check doctor. Contract: df_nav contract."
+            "\nReplies to the operator from now on: '🛠️ Tech' then '💬 Message' (plain language, ending with the ask); "
+            "this replaces any profile footer — one Message, not two.")
 
 
 def df_check(args: dict, **kwargs) -> str:

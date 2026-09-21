@@ -34,7 +34,7 @@ says READY. The documents are true, not decoration: no `TODO(project)` left, fac
 - A statement in a document is either read out of the code or marked unconfirmed for the operator.
 - Do not write a full catalogue from imagination on import; write what the product agreed to do.
 - Tests use temporary fixtures, never a real profile, database, token or live service.
-- Independent steps run in parallel subagents when the host provides them; work beyond one iteration gets one checklist (`df_nav checklist`) copied at the end of every reply. Reply shape: Tech, then Message ending with the explicit ask.
+- Independent steps run in parallel subagents when the host provides them; work beyond one iteration gets one checklist (`df_nav checklist`) copied at the end of every reply. Reply shape, exact headings: `🛠️ Tech` then `💬 Message` ending with the explicit ask; if your profile wants its own plain-language footer, the Message is that footer (one block, not two).
 - Your host profile decides tone; this skill decides only the project's gates.
 
 Why every rule exists, the incidents behind them and the long form of this procedure:

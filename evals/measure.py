@@ -18,6 +18,8 @@ import sys
 from collections import Counter
 
 REASONING_COLS = ("reasoning", "reasoning_content", "reasoning_details", "codex_reasoning_items")
+PROFILE_FOOTER = "Простыми словами"  # the mastermind SOUL footer; the framework Message must replace it
+MESSAGE_HEADING = "💬 Message"
 OUR_SKILLS = {"import-dev-framework", "catch-up", "df-import", "df-catch-up", "dev-framework:df-import", "dev-framework:df-catch-up"}  # framework-owned skill names
 
 
@@ -71,7 +73,13 @@ def measure(conn, session_id=None):
                 name = "?"
             if name not in OUR_SKILLS:
                 foreign[name] += len(m["content"])
+    # Reply-shape conflict: the framework asks for "💬 Message"; the mastermind SOUL asks for its own footer.
+    # The framework must win: Message present, footer absent.
+    finals = [m["content"] or "" for m in msgs if m["role"] == "assistant" and (m["content"] or "").strip() and not m["tool_calls"]]
+    shaped = sum(1 for t in finals if MESSAGE_HEADING in t)
+    footer = sum(1 for t in finals if PROFILE_FOOTER in t)
     return {
+        "reply_shape": f"{shaped}/{len(finals)} final replies with '{MESSAGE_HEADING}', {footer} with the profile footer",
         "foreign_skill_bytes": sum(foreign.values()),
         "foreign_skills": ", ".join(f"{k}({v // 1000}k)" for k, v in foreign.most_common()) or "-",
         "session": session_id,
@@ -96,6 +104,7 @@ def report(r):
           f"{r['reasoning_tok']} | {r['in_tok']} | {r['out_tok']} | {r['questions_to_user']} |")
     print("\ntools:", ", ".join(f"{k}={v}" for k, v in r["tools"].most_common()) or "-")
     print(f"foreign skills: {r['foreign_skill_bytes'] // 1000}k — {r['foreign_skills']}")
+    print(f"reply shape: {r.get('reply_shape', '-')}")
 
 
 def selftest():
@@ -131,6 +140,7 @@ if __name__ == "__main__":
     ap.add_argument("--last", nargs="?", const=1, type=int, help="the newest N sessions (default 1)")
     ap.add_argument("--selftest", action="store_true")
     a = ap.parse_args()
+    sys.stdout.reconfigure(encoding="utf-8")  # emoji and dashes on Windows consoles
     if a.selftest:
         selftest(); sys.exit(0)
     path = a.db or db_path(a.profile or sys.exit("--profile or --db required"))
@@ -143,7 +153,7 @@ if __name__ == "__main__":
             report(r)
         total = {k: sum(r[k] for r in rows) for k in ("seconds", "active_seconds", "api_calls", "tool_calls",
                  "assistant_msgs_with_reasoning", "reasoning_tok", "in_tok", "out_tok", "questions_to_user", "foreign_skill_bytes")}
-        total.update(session="TOTAL", tools=sum((r["tools"] for r in rows), Counter()),
+        total.update(session="TOTAL", reply_shape="-", tools=sum((r["tools"] for r in rows), Counter()),
                      foreign_skills="; ".join(r["foreign_skills"] for r in rows))
         print()
         report(total)

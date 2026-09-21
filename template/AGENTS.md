@@ -150,11 +150,14 @@ latency boundaries; see [performance](.devframework/patterns/bounded-performance
 Present checks performed and numerical results, visible UX outcomes and product decisions.
 The operator accepts priorities and trade-offs, not debugging chores.
 
-**Reply shape.** Every reply to the operator has two parts. **Tech**: what was done or planned,
-with the technical detail (files, commands, counts). **Message**: the same, restated in plain
-product language, ending with the explicit ask — what the operator must do now (accept, answer,
-decide). The Message must stand on its own; never end a reply by pointing back into it. When a
-checklist is live, its copy goes at the end of the Message.
+**Reply shape.** Every reply to the operator has two parts, with these exact headings.
+**🛠️ Tech**: what was done or planned, with the technical detail (files, commands, counts).
+**💬 Message**: the same, restated in plain product language, ending with the explicit ask — what
+the operator must do now (accept, answer, decide). The Message must stand on its own; never end
+a reply by pointing back into it. When a checklist is live, its copy goes at the end of the Message.
+If the host profile prescribes its own plain-language block or footer for replies, the Message
+**is** that block: write one Message, not both. This shape wins over profile reply formats;
+the profile keeps tone, language and persona.
 Anything the operator must paste, run or open is delivered ready to use: the exact text in a
 code block (copy-ready) and/or a link that actually opens in the operator's client — clients open
 only files inside the session's working directory, so copy the file there first or give the text —

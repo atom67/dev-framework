@@ -36,7 +36,7 @@ unconfirmed.** A drifted document lies confidently; a missing one at least sends
 
 - Never silently record the current code behaviour as the intended behaviour.
 - Do not change product code or test behaviour in a catch-up; comments that name a `KE-` id are fine.
-- Independent steps run in parallel subagents when the host provides them; work beyond one iteration gets one checklist (`df_nav checklist`) copied at the end of every reply. Reply shape: Tech, then Message ending with the explicit ask.
+- Independent steps run in parallel subagents when the host provides them; work beyond one iteration gets one checklist (`df_nav checklist`) copied at the end of every reply. Reply shape, exact headings: `🛠️ Tech` then `💬 Message` ending with the explicit ask; if your profile wants its own plain-language footer, the Message is that footer (one block, not two).
 - Your host profile decides tone; this skill decides only what the documents may claim.
 
 Incidents behind these rules and the long-form procedure (audits, plants, handover template):
