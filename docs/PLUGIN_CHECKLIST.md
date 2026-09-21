@@ -34,8 +34,10 @@
 - [x] Verified: no post-report ad-hoc scripts, no hub detour, foreign skills reported (`known-errors` 46k via SOUL)
 - [x] Fixed what the runs showed (2026-09-21): doctor names the exact profile-link path; the test-command SETUP
       message names the counted runner argv and warns that bare unittest/pytest fails finish; seeded root `.gitignore`
-- [ ] Clean re-run of the plugin evals in `mastermind` (plugin and copied skills removed first, Desktop restarted):
-      S1–S3 + reply-shape column (target M/M with 💬 Message, 0 profile footers)
+- [x] Clean re-run 2026-09-21 14:05 (`evals/runs/2026-09-21_plugin_clean.md`): quality equal, .gitignore fix confirmed;
+      reply-shape conflict result = **both blocks** (Message appears, SOUL footer stays) → cannot be won from inside
+      the conversation; handed to portion 2
+- [ ] Eval REPORT template gets the 🛠️ Tech / 💬 Message shape itself (eval defect found in the clean run)
 - [ ] FOLLOWUP evals (new session on S1/S2 results) for skills and plugin — the "agent reads instead of
       re-deriving" metric
 
