@@ -19,7 +19,7 @@ cd D:\DEV\DEV-Framework; git status -sb
 # 1. чистый профиль на КАЖДЫЙ прогон — так установка "с нуля" настоящая, а метрики не смешиваются
 hermes profile create dftest-s2a --clone-from mastermind      # конфиг+auth с рабочего профиля, наших скилов там нет
 
-# 2. рабочая папка + фикстура (S1: папка пустая)
+# 2. рабочая папка + фикстура (S1: папка пустая) — это делает агент-помощник (Claude), не владелец
 New-Item -ItemType Directory -Force D:\dftest\s2a | Out-Null
 Copy-Item -Recurse evalsixtures\s2-notes-cli D:\dftest\s2a
 otes-cli

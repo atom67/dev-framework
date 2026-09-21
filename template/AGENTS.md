@@ -39,6 +39,11 @@ Provider loading and an engineer-run fresh-session test: [agents](.devframework/
   changing source, live data, services or remote state needs implementation authorization.
 - Implement: make the requested changes, preserve unrelated edits, verify affected paths.
   Before running commands inspect and state the branch, outputs and side effects.
+- Do yourself everything a tool can do: create directories, copy fixtures, run commands, read
+  logs, prepare test data. Ask the operator only where a human is genuinely required — input
+  in an interface made for people (a desktop app, a browser session, a phone), an approval,
+  a product decision, or a credential you must not handle. "Please create the folder and copy
+  the files" is a defect in the reply, not a task for the operator.
 - Build is not run; run is not deploy. Never stop or restart the user's working app,
   upload, publish or change production solely because a build succeeded.
 - Use the existing branch unless the operator or selected project workflow requests a
