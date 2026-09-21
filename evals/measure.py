@@ -18,7 +18,7 @@ import sys
 from collections import Counter
 
 REASONING_COLS = ("reasoning", "reasoning_content", "reasoning_details", "codex_reasoning_items")
-OUR_SKILLS = {"import-dev-framework", "catch-up", "df-init", "df-catch-up"}  # framework-owned skill names
+OUR_SKILLS = {"import-dev-framework", "catch-up", "df-import", "df-catch-up"}  # framework-owned skill names
 
 
 def db_path(profile):
@@ -124,12 +124,26 @@ if __name__ == "__main__":
     ap = argparse.ArgumentParser()
     ap.add_argument("--profile")
     ap.add_argument("--db")
-    ap.add_argument("--session")
-    ap.add_argument("--last", action="store_true")
+    ap.add_argument("--session", help="one session id")
+    ap.add_argument("--sessions", help="comma-separated ids: each row printed, then a TOTAL row")
+    ap.add_argument("--last", nargs="?", const=1, type=int, help="the newest N sessions (default 1)")
     ap.add_argument("--selftest", action="store_true")
     a = ap.parse_args()
     if a.selftest:
         selftest(); sys.exit(0)
     path = a.db or db_path(a.profile or sys.exit("--profile or --db required"))
     conn = sqlite3.connect(f"file:{path}?mode=ro", uri=True)
-    report(measure(conn, None if a.last or not a.session else a.session))
+    if a.sessions or (a.last and a.last > 1):
+        ids = a.sessions.split(",") if a.sessions else [r[0] for r in conn.execute(
+            "SELECT id FROM sessions ORDER BY started_at DESC LIMIT ?", (a.last,))][::-1]
+        rows = [measure(conn, s.strip()) for s in ids]
+        for r in rows:
+            report(r)
+        total = {k: sum(r[k] for r in rows) for k in ("seconds", "active_seconds", "api_calls", "tool_calls",
+                 "assistant_msgs_with_reasoning", "reasoning_tok", "in_tok", "out_tok", "questions_to_user", "foreign_skill_bytes")}
+        total.update(session="TOTAL", tools=sum((r["tools"] for r in rows), Counter()),
+                     foreign_skills="; ".join(r["foreign_skills"] for r in rows))
+        print()
+        report(total)
+    else:
+        report(measure(conn, None if a.last or not a.session else a.session))

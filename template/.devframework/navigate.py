@@ -69,6 +69,30 @@ def git(root: Path, *args: str) -> str:
         return ""
 
 
+def freshness(root: Path) -> str:
+    """Is the checkout current? Parallel work (people or other agents) commits while you are away.
+
+    Fetches the upstream of the current branch (best effort, 20 s) and reports behind/ahead.
+    """
+    if not git(root, "remote"):
+        return "remote: none — nobody else can have pushed; still check `git log` against the last handoff"
+    upstream = git(root, "rev-parse", "--abbrev-ref", "--symbolic-full-name", "@{upstream}")
+    if not upstream:
+        return "remote: branch has no upstream — compare with the shared branch by hand before editing"
+    try:
+        subprocess.run(["git", "-C", str(root), "fetch", "--quiet"], capture_output=True, timeout=20)
+    except (OSError, subprocess.TimeoutExpired):
+        return f"remote: fetch failed or timed out — assume {upstream} may be ahead; pull before editing"
+    counts = git(root, "rev-list", "--left-right", "--count", f"HEAD...{upstream}")
+    if not counts:
+        return f"remote: cannot compare with {upstream}"
+    ahead, behind = (int(x) for x in counts.split())
+    if behind:
+        incoming = " | ".join(git(root, "log", "-3", "--format=%h %s", f"HEAD..{upstream}").splitlines())
+        return f"remote: BEHIND {upstream} by {behind} commit(s) — pull/rebase BEFORE editing: {incoming}"
+    return f"remote: up to date with {upstream}" + (f", {ahead} local commit(s) not pushed" if ahead else "")
+
+
 def active_checklists(root: Path) -> list[Path]:
     docs = root / "docs"
     if not docs.is_dir():
@@ -118,6 +142,7 @@ def brief(root: Path) -> str:
         dirty = git(root, "status", "--porcelain")
         out.append(f"git: {branch}, {len(dirty.splitlines())} changed file(s); last: "
                    + (" | ".join(git(root, "log", "-3", "--format=%h %s").splitlines()) or "no commits yet"))
+        out.append(freshness(root))
     else:
         out.append("git: no repository (finish/commit-check need one)")
     uc = [(i, t, field(b, "Test")) for _, i, t, b in blocks(root) if i.startswith("UC-")]

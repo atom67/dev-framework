@@ -16,6 +16,10 @@ returns one block instead of a document. Read the documents below where the brie
 3. Read [requirements](docs/REQUIREMENTS.md) and [backlog](docs/BACKLOG.md) before planning.
 4. Follow the backlog link to the active checklist. Read its Handoff section: decisions,
    actual verification, uncommitted work, limitations and next step. Check git status.
+   **Before the first edit make sure the code is current:** development is parallel — other
+   people or agents may have committed since the handoff. Fetch, compare the branch with its
+   upstream and with the handoff's commit (`navigate.py brief` prints behind/ahead); pull or
+   rebase first, and re-read what changed in the files you are about to touch.
 5. For data or architecture work read [architecture](docs/ARCHITECTURE.md) and the relevant
    [pattern recipe](.devframework/patterns/README.md). For a value path (interactive or
    automatic) also read [use cases](docs/USE_CASES.md). For behaviour changes also read the

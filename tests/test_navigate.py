@@ -66,6 +66,29 @@ class NavigateTests(WorkspaceTest):
         self.assertIn("git: main", out)
         self.assertLess(out.count("\n"), 25, "the brief must stay one screen")
 
+    def test_brief_reports_commits_behind_upstream(self):
+        self.git("add", "."); self.git("-c", "user.name=t", "-c", "user.email=t@t", "commit", "-q", "-m", "base")
+        bare = self.base / "remote.git"
+        subprocess.run(["git", "init", "-q", "--bare", "--initial-branch=main", str(bare)], check=True, timeout=30)
+        self.addCleanup(self.unlock, bare, self.base / "other")  # git objects are read-only; cleanup must delete them
+        self.git("remote", "add", "origin", str(bare)); self.git("push", "-q", "-u", "origin", "main")
+        self.assertIn("remote: up to date with origin/main", self.nav("brief")[1])
+        other = self.base / "other"
+        subprocess.run(["git", "clone", "-q", str(bare), str(other)], check=True, timeout=30)
+        (other / "teammate.txt").write_text("hello\n", encoding="utf-8")
+        for args in (["add", "."], ["-c", "user.name=o", "-c", "user.email=o@o", "commit", "-q", "-m", "teammate change"], ["push", "-q"]):
+            subprocess.run(["git", "-C", str(other), *args], check=True, timeout=30, capture_output=True)
+        out = self.nav("brief")[1]
+        self.assertIn("BEHIND origin/main by 1 commit(s)", out)
+        self.assertIn("teammate change", out)
+
+    @staticmethod
+    def unlock(*roots):
+        import os, stat
+        for root in roots:
+            for path in root.rglob("*"):
+                os.chmod(path, stat.S_IWRITE | stat.S_IREAD)
+
     def test_find_returns_one_block_or_hits(self):
         code, out = self.nav("find", "UC-102")
         self.assertEqual(code, 0)
