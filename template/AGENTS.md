@@ -156,8 +156,9 @@ product language, ending with the explicit ask — what the operator must do now
 decide). The Message must stand on its own; never end a reply by pointing back into it. When a
 checklist is live, its copy goes at the end of the Message.
 Anything the operator must paste, run or open is delivered ready to use: the exact text in a
-code block (copy-ready) and/or a clickable link to the file — never a bare path or a file name
-the operator has to go and find on disk. Manual engineering
+code block (copy-ready) and/or a link that actually opens in the operator's client — clients open
+only files inside the session's working directory, so copy the file there first or give the text —
+never a bare path or a file name the operator has to go and find on disk. Manual engineering
 verification remains the implementer's job; inaccessible checks are explicit limitations.
 Acceptance, commit and deployment are separate events.
 
