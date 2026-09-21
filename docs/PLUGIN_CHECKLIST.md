@@ -46,16 +46,19 @@ and the verdict against the ≤ 0.7× target, in plain language.
 
 ### 2. Host conflicts caught by doctor (`hostcheck`)
 
-- [ ] `.devframework/hostcheck.py`: find host context (HERMES_HOME SOUL.md, ~/.claude/CLAUDE.md + rules,
+- [x] `.devframework/hostcheck.py` (f8e3e65): host context (HERMES_HOME SOUL.md, ~/.claude/CLAUDE.md + rules,
       ~/.codex/AGENTS.md, .cursorrules / .cursor/rules), detect conflict classes with file:line quotes:
       per-reply blocks on both sides · "read skill X before any task" · test/commit rules against the gate ·
       bans on files the framework maintains · duplicate rule sources
-- [ ] `## Host precedence` register in PROJECT.md template; doctor WARNING for a detected conflict with no
+- [x] `## Host precedence` register in PROJECT.md template; doctor WARNING for a detected conflict with no
       recorded decision; re-checked on every doctor/finish (SOUL edited later → surfaces again)
-- [ ] df-import / df-catch-up: step "read host rules, list collisions, record the operator's decisions"
-- [ ] Test: planted SOUL with a per-reply footer and a "commit after every change" rule → two warnings;
-      recorded decisions → none
-- [ ] Re-run S2 plugin eval in `mastermind` to see the register in action
+- [x] df-import / df-catch-up: step "hostcheck, one list to the operator, edit with authorization, record decisions"
+- [x] Tests (4): planted SOUL + referenced skill → 6 conflicts; recorded decisions → none; rule added later → surfaces
+- [ ] S2 plugin eval in `mastermind` with a hardened profile (test block in SOUL: read-skill-first, commit-after-every-change,
+      no-tests; conflict skill `ship-fast`: docs ban, ad-hoc verify, auto-push) — 8 conflicts expected; operator gives one
+      decision; agent edits SOUL/skill with authorization and records the register
+- [ ] Phase B: after install, a new rule is added to SOUL; FOLLOWUP session on `D:/dftest/ps2/notes-cli` must surface it
+      in the brief and stop for a decision (also the "reads docs instead of re-deriving" metric)
 
 **Acceptance:** doctor output on the owner's real profile listing the actual collisions (known-errors skill,
 🟢 footer, RED-first) with their recorded decisions.
