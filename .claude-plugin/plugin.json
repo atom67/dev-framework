@@ -1,0 +1,10 @@
+{
+  "name": "dev-framework",
+  "displayName": "DEV Framework",
+  "version": "1.1.0",
+  "description": "Documents agents actually read and gates that prove the work is done: install the framework into a repo, keep a use case ↔ module ↔ test catalogue, start every session from a one-screen brief, and settle host-rule conflicts with the operator.",
+  "author": { "name": "trenthalden", "url": "https://github.com/trenthalden/dev-framework" },
+  "homepage": "https://github.com/trenthalden/dev-framework",
+  "license": "MIT",
+  "keywords": ["documentation", "process", "verification", "use-cases", "handoff"]
+}

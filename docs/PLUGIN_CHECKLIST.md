@@ -68,10 +68,12 @@ and the verdict against the ≤ 0.7× target, in plain language.
 
 ### 3. Second host: Claude Code adapter
 
-- [ ] `.claude-plugin/plugin.json` + `skills/` reuse + `SessionStart` hook injecting `navigate.py brief`
-      when cwd has `.devframework/`
+- [x] `.claude-plugin/plugin.json` + `.claude-plugin/marketplace.json` (repo is its own marketplace, source `./`),
+      `commands/{init,check,nav}.md`, `hooks/hooks.json` → `scripts/claude_session_start.py` (injects `navigate.py brief`
+      when the cwd or a parent holds `.devframework/`, silent otherwise); the existing `skills/df-*` are discovered as-is.
+      `claude plugin validate .` passes; 4 tests in `tests/test_claude_plugin.py`
 - [ ] Evals S1–S3 in Claude Code (same fixtures, same prompts, measure from the Claude session log)
-- [ ] README host matrix: Hermes / Claude Code / Cursor / Codex — what works, how installed
+- [x] README host matrix: Hermes / Claude Code / any agent with a shell
 
 **Acceptance:** S2 passes in Claude Code with the same quality columns; brief appears without a call.
 

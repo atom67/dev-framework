@@ -1,0 +1,15 @@
+{
+  "name": "dev-framework",
+  "description": "DEV Framework — a process overlay that makes agents document what they build and prove it with gates.",
+  "owner": {
+    "name": "trenthalden",
+    "url": "https://github.com/trenthalden/dev-framework"
+  },
+  "plugins": [
+    {
+      "name": "dev-framework",
+      "source": "./",
+      "description": "DEV Framework: install the process overlay into a repository, navigate it from one brief, and prove work with doctor/finish."
+    }
+  ]
+}

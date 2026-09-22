@@ -177,9 +177,20 @@ hard-linked target files and overlapping source/target roots. Multi-file visibil
 not atomic; installation and doctor/finish refuse a pending transaction. Power-loss guarantees depend on the
 filesystem and are not proven by a process-crash test. No automatic semantic merge.
 
+## Hosts
+
+| Host | How it is installed | What it gives the agent |
+|---|---|---|
+| **Hermes Agent** | `hermes plugins install trenthalden/dev-framework` → `hermes plugins enable dev-framework` (plugins load at process start; the Desktop app needs a restart) | tools `df_init`, `df_check`, `df_nav`; skills `dev-framework:df-import`, `dev-framework:df-catch-up`; CLI `hermes devframework` |
+| **Claude Code** | `/plugin marketplace add trenthalden/dev-framework` → `/plugin install dev-framework@dev-framework` | skills `df-import`, `df-catch-up`; commands `/dev-framework:init`, `/dev-framework:check`, `/dev-framework:nav`; a `SessionStart` hook that injects the project brief automatically when the working directory is a framework project |
+| **Cursor, Codex, any agent with a shell** | clone the repository; the skills are standard `SKILL.md` files | `python scripts/install.py`, then `.devframework/navigate.py` and `.devframework/check.py` in the project |
+
+The framework itself is the same in every host: `template/` + `scripts/install.py` + the `.devframework/` tools,
+standard library only. A host adapter only wraps them — it never holds logic.
+
 ## Hermes plugin
 
-**v1.0.0 (release beta).** Measured against the same scenarios run without it: 0.33–0.55× the tool calls and
+**v1.1.0 (beta; Hermes + Claude Code).** Measured against the same scenarios run without it: 0.33–0.55× the tool calls and
 0.30–0.47× the input tokens, with equal or better documentation quality; host-rule conflicts are surfaced and settled
 by the operator instead of silently fighting the framework. Evidence: [evals/RESULTS.md](evals/RESULTS.md) and the
 per-run reports in [evals/runs/](evals/runs/).
