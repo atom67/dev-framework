@@ -5,3 +5,7 @@ __pycache__/
 
 # eval answer keys: the agent clones this repo during a run and must not see them
 evals/private/
+
+# self-hosting: the framework installed into its own repository is generated from template/
+# (see PROJECT.md "Product and stack"); committing it would create a second copy that drifts
+/.devframework/

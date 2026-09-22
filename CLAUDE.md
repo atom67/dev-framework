@@ -1,3 +1,4 @@
 @AGENTS.md
+@PROJECT.md
 
-<!-- Maintainer adapter. Package facts and commands are in README.md, as routed by AGENTS. -->
+<!-- Adapter only. Shared rules and facts have one source; do not duplicate them here. -->
