@@ -13,7 +13,7 @@
 
 ## Один прогон (пример: S2, вариант skills)
 ```powershell
-# 0. репо фреймворка должно быть запушено (агент клонирует https://github.com/atom67/dev-framework)
+# 0. репо фреймворка должно быть запушено (агент клонирует https://github.com/trenthalden/dev-framework)
 cd D:\DEV\DEV-Framework; git status -sb
 
 # 1. чистый профиль на КАЖДЫЙ прогон — так установка "с нуля" настоящая, а метрики не смешиваются

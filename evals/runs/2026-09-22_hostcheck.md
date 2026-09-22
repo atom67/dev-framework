@@ -30,7 +30,7 @@ overlay were updated to 8ab31c1 first.
 3. The agent **stopped and asked one `clarify` question** with the proposed fix — exactly the required behaviour.
 4. With the operator's answer it backed up `SOUL.md`, `ship-fast/SKILL.md` and the shared `known-errors/SKILL.md`
    (timestamped `.bak`), **rewrote the host rules to be framework-aware** (footer → "the 💬 Message block replaces this
-   format for framework projects"; read-`known-errors` → scoped to KA/Alisa; commit/push → only after commit-check and
+   format for framework projects"; read-`known-errors` → scoped to the profile’s own projects; commit/push → only after commit-check and
    authorization; no-tests → not applicable to framework projects; docs ban → explicit exception; ad-hoc verify →
    `df_check finish`), recorded 9 `replaced` lines in `PROJECT.md ## Host precedence`, and reran hostcheck → **CLEAN**.
 5. Then it did the actual feature by the project's process: UC-006 + FR-006, RED tests first, `store.edit()` and

@@ -179,12 +179,17 @@ filesystem and are not proven by a process-crash test. No automatic semantic mer
 
 ## Hermes plugin
 
+**v1.0.0 (release beta).** Measured against the same scenarios run without it: 0.33–0.55× the tool calls and
+0.30–0.47× the input tokens, with equal or better documentation quality; host-rule conflicts are surfaced and settled
+by the operator instead of silently fighting the framework. Evidence: [evals/RESULTS.md](evals/RESULTS.md) and the
+per-run reports in [evals/runs/](evals/runs/).
+
 The package is also a [Hermes Agent](https://github.com/NousResearch/hermes-agent) plugin: `plugin.yaml` and
 `__init__.py` at the repository root. Installing it gives the agent three tools and two skills, so it never has
 to read this package to learn it:
 
 ```bash
-hermes plugins install atom67/dev-framework
+hermes plugins install trenthalden/dev-framework
 hermes plugins enable dev-framework
 ```
 

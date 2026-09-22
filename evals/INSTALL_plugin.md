@@ -4,7 +4,7 @@ Desktop: a normal user cannot run the CLI, so **you** install it from the chat, 
 1. Look at your tool list. If the tools `df_init`, `df_check`, `df_nav` are **already there**, skip to Step 1.
 2. Otherwise run in the terminal:
    `hermes plugins install file://D:/DEV/DEV-Framework` then `hermes plugins enable dev-framework`
-   (a public user would write `hermes plugins install atom67/dev-framework`). Plugins are discovered when the Hermes
+   (a public user would write `hermes plugins install trenthalden/dev-framework`). Plugins are discovered when the Hermes
    process starts, so you cannot use the new tools in this session. Reply with exactly one line —
    `PLUGIN INSTALLED — quit and reopen Hermes Desktop, start a new session and send this prompt again` — and stop.
    Do nothing else.

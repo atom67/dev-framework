@@ -1,8 +1,8 @@
 name: dev-framework
-version: 0.4.0
+version: 1.0.0
 description: "DEV Framework for Hermes: documents that agents actually read and gates that prove work is done — df_init (install into a repo), df_check (doctor / finish / commit-check / selftest / secrets), df_nav (session brief, find one block, index, checklists, handoff). Bundles the df-import and df-catch-up skills."
-author: "atom67"
-homepage: https://github.com/atom67/dev-framework
+author: "trenthalden"
+homepage: https://github.com/trenthalden/dev-framework
 provides_tools:
   - df_init
   - df_check
