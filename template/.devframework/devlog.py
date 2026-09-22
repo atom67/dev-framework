@@ -40,7 +40,8 @@ def settings(root: Path) -> dict:
 
 def _git(root: Path, *args: str) -> str:
     try:
-        r = subprocess.run(["git", "-C", str(root), *args], capture_output=True, text=True, timeout=20)
+        r = subprocess.run(["git", "-C", str(root), *args], capture_output=True, text=True,
+                           encoding="utf-8", errors="replace", timeout=20)
         return r.stdout.strip() if r.returncode == 0 else ""
     except Exception:
         return ""

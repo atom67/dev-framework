@@ -63,7 +63,8 @@ def field(body: list[str], name: str) -> str:
 
 def git(root: Path, *args: str) -> str:
     try:
-        run = subprocess.run(["git", "-C", str(root), *args], capture_output=True, text=True, timeout=15)
+        run = subprocess.run(["git", "-C", str(root), *args], capture_output=True, text=True,
+                             encoding="utf-8", errors="replace", timeout=15)  # git speaks UTF-8; the console locale does not
         return run.stdout.strip() if run.returncode == 0 else ""
     except (OSError, subprocess.TimeoutExpired):
         return ""
@@ -220,7 +221,8 @@ doctor  = structure + configuration. READY needs: every framework file present; 
           `build_not_applicable` text); docs/USE_CASES.md with >= 1 `#### UC-### — title` heading, each with a
           `**Test:**` field and a row in the traceability table; SET/UC citations only to existing ids.
 finish  = doctor + worktree secret heuristic + build (if any) + test + extra checks; argv form, no shell; needs git.
-          The test runner writes counted evidence (run_unittest.py does; > 0 tests, skipped <= max_skipped).
+          The test runner writes counted evidence (run_unittest.py does; > 0 tests, skipped <= max_skipped);
+          `--jobs auto` gives it one process per test module.
           Source must not change while it runs. Prints TEST EVIDENCE, SOURCE SHA256, FINISH PASSED; regenerates docs/INDEX.md.
 commit-check = finish + index/worktree parity + staged-blob secret scan. Only before an authorized commit.
 selftest = proves the gates bite: plants a fake UC, a fake secret and a timer in a temp copy and expects failures.

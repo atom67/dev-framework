@@ -82,6 +82,12 @@ class NavigateTests(WorkspaceTest):
         self.assertIn("BEHIND origin/main by 1 commit(s)", out)
         self.assertIn("teammate change", out)
 
+    def test_brief_keeps_non_ascii_commit_subjects_readable(self):
+        subject = "fix: em dash — тест"  # git writes UTF-8; a cp1251 console must not mangle it
+        self.git("add", ".")
+        self.git("-c", "user.name=t", "-c", "user.email=t@t", "commit", "-q", "-m", subject)
+        self.assertIn(subject, self.nav("brief")[1])
+
     @staticmethod
     def unlock(*roots):
         import os, stat
