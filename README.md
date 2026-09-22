@@ -190,10 +190,13 @@ standard library only. A host adapter only wraps them — it never holds logic.
 
 ## Hermes plugin
 
-**v1.1.0 (beta; Hermes + Claude Code).** Measured against the same scenarios run without it: 0.33–0.55× the tool calls and
+**v1.2.0 (beta; Hermes + Claude Code).** Measured against the same scenarios run without it: 0.33–0.55× the tool calls and
 0.30–0.47× the input tokens, with equal or better documentation quality; host-rule conflicts are surfaced and settled
 by the operator instead of silently fighting the framework. Evidence: [evals/RESULTS.md](evals/RESULTS.md) and the
 per-run reports in [evals/runs/](evals/runs/).
+This repository runs on its own framework, and that is how v1.2.0 was found: the finish gate took 6m15s
+because test modules ran one after another. `run_unittest.py --jobs auto` gives each module its own process —
+the same 111 tests now take 40 seconds.
 
 The package is also a [Hermes Agent](https://github.com/NousResearch/hermes-agent) plugin: `plugin.yaml` and
 `__init__.py` at the repository root. Installing it gives the agent three tools and two skills, so it never has

@@ -120,6 +120,13 @@ any of the above.
 
 ## Handoff — update at every portion boundary and provider switch
 
+### 2026-09-22 (written by navigate.py handoff)
+- Branch/commit: main @ 9d11ad4; uncommitted: 17 file(s)
+- Open items: 17; next: [8] Eval REPORT template gets the 🛠️ Tech / 💬 Message shape itself (eval defect found in the clean run)
+- doctor: READY (structure/configuration; tests not run — run `check.py finish`)
+- Note: Self-hosting landed: the repository now runs on its own framework (generated .devframework is git-ignored, refresh command in PROJECT.md). doctor READY, finish PASSED 110 tests/2 skipped. Claude Code cache is a junction to this repo, so edits are live without reinstall. Uncommitted: AGENTS.md/CLAUDE.md replaced by the framework contract (old maintainer rules moved into PROJECT.md), .gitignore, PROJECT.md, new docs seeds, scripts/run_tests.sh, UTF-8 git decoding fix in template navigate/devlog + its regression test. Nothing committed or pushed.
+
+
 - Branch/base commit and task-owned uncommitted changes: `main`; plugin v0.4.0 work uncommitted until the
   authorized commit in portion 1.
 - Current portion and next concrete step: portion 1 — commit, then the operator runs the three plugin prompts.
@@ -137,3 +144,4 @@ any of the above.
 - [ ] Lite profile as the default for novices (cuts 5 of 9 documents)
 - [ ] GUIDE split of the templates
 - [ ] Public repository name and the moment of the first push
+- [ ] Release discipline for Claude Code: bump VERSION + both manifests, then `claude plugin tag` (consumers only see a change when the version moves)

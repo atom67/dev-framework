@@ -183,6 +183,17 @@ For N clients polling every T seconds for H hours/day:
 Check these assumptions against measured traffic. A comment marker alone proves no maths.
 Prefer push, caching, bounded backoff and jitter where appropriate, not by dogma.
 
+**Cost of the loop itself.** Time the operations you repeat, and report those numbers with the
+result. Re-running a full verification for a change whose scope you already know is waste, not
+rigour: during iteration run the affected test module (seconds), and run the full gate once before
+reporting. A gate slower than a minute is a defect in the suite, not a fact of life. Measure per
+module before trimming anything: independent modules belong in parallel processes
+(`run_unittest.py --jobs auto`), and only what is still slow deserves a smaller fixture or fewer
+duplicated paths. Judge the suite by risk covered per second spent — a test that repeats another
+test's path, an extra check that re-runs the same suite, and a fixture that installs more than the
+case needs are removable without losing evidence. If a session spends more time verifying than
+changing, say so and fix the loop before continuing.
+
 ## 6. Secrets and checks
 
 No real plaintext credentials in source, docs, fixtures, logs or build configuration.
