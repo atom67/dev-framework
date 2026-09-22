@@ -54,11 +54,14 @@ and the verdict against the ≤ 0.7× target, in plain language.
       recorded decision; re-checked on every doctor/finish (SOUL edited later → surfaces again)
 - [x] df-import / df-catch-up: step "hostcheck, one list to the operator, edit with authorization, record decisions"
 - [x] Tests (4): planted SOUL + referenced skill → 6 conflicts; recorded decisions → none; rule added later → surfaces
-- [ ] S2 plugin eval in `mastermind` with a hardened profile (test block in SOUL: read-skill-first, commit-after-every-change,
+- [x] S2 plugin eval 2026-09-22 with a hardened profile (test block in SOUL: read-skill-first, commit-after-every-change,
       no-tests; conflict skill `ship-fast`: docs ban, ad-hoc verify, auto-push) — 8 conflicts expected; operator gives one
-      decision; agent edits SOUL/skill with authorization and records the register
-- [ ] Phase B: after install, a new rule is added to SOUL; FOLLOWUP session on `D:/dftest/ps2/notes-cli` must surface it
-      in the brief and stop for a decision (also the "reads docs instead of re-deriving" metric)
+      decision — result in `evals/runs/2026-09-22_hostcheck.md`: reply shape won (0 footers), all four harmful rules
+      ignored in practice, 8 conflicts surfaced; defect (agent recorded decisions itself) fixed in 8ab31c1
+- [x] Phase B 2026-09-22: a rule added to SOUL **after** installation surfaced in `brief` as "1 unresolved", the agent
+      stopped with one clarify question, then rewrote SOUL / ship-fast / known-errors to be framework-aware (backups),
+      recorded 9 `replaced` decisions and reran hostcheck CLEAN; the feature itself went RED→GREEN, finish 9/9, `7c266f0`
+- [ ] Restore the owner's profile: remove the test block from SOUL, delete `ship-fast`, keep or revert the reworded rules
 
 **Acceptance:** doctor output on the owner's real profile listing the actual collisions (known-errors skill,
 🟢 footer, RED-first) with their recorded decisions.

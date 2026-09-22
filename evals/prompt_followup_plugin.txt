@@ -1,6 +1,6 @@
 # DEV Framework evaluation — follow-up session (variant: plugin)
 
-This is a **new session** on a project that already uses DEV Framework. You are being timed and every tool call is counted. Start by reading the project's own documents (they tell you how to work); do not re-derive the project from the code if the documents answer the question. Do not ask me anything that the documents or code answer.
+This is a **new session** on a project that already uses DEV Framework. You are being timed and every tool call is counted. Start by reading the project's own documents (they tell you how to work); do not re-derive the project from the code if the documents answer the question. Do not ask me anything that the documents or code answer. Host-rule conflicts reported by the framework are the one thing you must ask me about — one message, all of them, with the proposed fix per line; wait for my answer before continuing.
 
 ## Task
 Project: `D:/dftest/ps2/notes-cli`. Add the feature below the way the project's process prescribes (use case → test → code → checks → commit):

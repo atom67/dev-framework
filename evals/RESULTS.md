@@ -12,6 +12,7 @@ quality columns from the agent's final report and a look at the resulting repo.
 | | S2→followup | skills | | | | | | | (0) | | | | n/a | |
 | 2026-09-21 | S1 | plugin v0.4.0 | gpt-5.6-terra | 1011 (471) | 22 | 43 | 19 | 2235 | 0 (0) +1 re-prompt | 5/5 | PASS | PASS | n/a | runs/2026-09-21_plugin.md; incl. install attempt |
 | 2026-09-21 | S2 | plugin v0.4.0 | gpt-5.6-terra | 1075 (537) | 24 | 53 | 22 | 2298 | 0 (0) +1 re-prompt | 6/6 | PASS | PASS | yes | two doctor/finish hiccups (profile link, test evidence) |
+| 2026-09-22 hardened | S2+FOLLOWUP | plugin 8ab31c1 | gpt-5.6-terra | 891 active | 53 | 103 | 50 | 7674 | 3 (1 host-conflict) | 9/9 | PASS | PASS | yes | hostcheck: 8 surfaced → 9 replaced → CLEAN; 0 profile footers |
 | 2026-09-21 14:05 clean | S1 | plugin v0.4.0+fixes | gpt-5.6-terra | 528 active | 29 | 55 | 27 | 2311 | 0 (0) | 4/4 | PASS | PASS | n/a | reply shape 0/2 Message, footer present |
 | 2026-09-21 14:05 clean | S2 | plugin v0.4.0+fixes | gpt-5.6-terra | 479 active | 18 | 59 | 18 | 1752 | 0 (0) | 6/6 | PASS | PASS | yes | reply shape 0/2 Message, footer present |
 | 2026-09-21 14:05 clean | S3 | plugin v0.4.0+fixes | gpt-5.6-terra | 608 active | 29 | 61 | 28 | 3636 | 3 (3/3) | 6/6 | PASS | PASS | yes | reply shape 3/5 Message + 4 footers = both blocks |
