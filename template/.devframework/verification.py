@@ -58,7 +58,7 @@ def load_config(root: Path) -> tuple[dict, list[str], list[str]]:
             reason = config.get("build_not_applicable")
             if name != "build" or not isinstance(reason, str) or not reason.strip():
                 hint = (" or a build_not_applicable reason" if name == "build" else
-                        ' as an argv that writes counted evidence, e.g. ["{python}", "-B", ".devframework/run_unittest.py", "--start", "tests"]'
+                        ' as an argv that writes counted evidence, e.g. ["{python}", "-B", ".devframework/run_unittest.py", "--start", "tests", "--jobs", "auto"]'
                         " (a bare `python -m unittest` or `pytest` passes doctor but fails finish: no counted evidence)")
                 setup.append(f"Configure {name} command" + hint)
         elif not valid_command(value):

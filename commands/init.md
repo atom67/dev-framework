@@ -20,7 +20,9 @@ Install the DEV Framework into the repository named in `$ARGUMENTS` (default: th
 3. `python <TARGET>/.devframework/navigate.py contract` — exactly what doctor and finish will demand.
 4. Fill from the code (read it) and from the operator (ask): `PROJECT.md` and `docs/ARCHITECTURE.md` until no
    `TODO(project):` remains; `.devframework/project.json` with a real test argv that writes counted evidence
-   (`["{python}", "-B", ".devframework/run_unittest.py", "--start", "tests"]` for Python); `docs/USE_CASES.md`
+   (`["{python}", "-B", ".devframework/run_unittest.py", "--start", "tests", "--jobs", "auto"]` for Python;
+   `--jobs auto` runs one process per test module and is the difference between a 40-second gate and a
+   7-minute one — drop it only if the modules share state outside their own fixtures); `docs/USE_CASES.md`
    with one `#### UC-### — title` per user-visible capability, each with a `**Test:**` field and a traceability row.
 5. `/dev-framework:check <TARGET> hostcheck` — host rules that fight the framework. Show the operator the list
    **once**, one decision per line; their decision, never yours.

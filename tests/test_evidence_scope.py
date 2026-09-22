@@ -53,6 +53,20 @@ class SnapshotFinishTests(WorkspaceTest):
         self.assertEqual(self.git("ls-files", "--stage", "-z"), b"")
         self.assertNotEqual(self.checker("commit-check").returncode, 0)
 
+    def test_parallel_jobs_merge_evidence_and_surface_a_failing_module(self):
+        """--jobs auto runs one process per module: totals must add up and one bad module must fail the gate."""
+        case = "import unittest\nclass T(unittest.TestCase):\n def test_{n}(self): self.assertTrue({ok})\n"
+        self.write("tests/test_alpha.py", case.format(n="alpha", ok="True"))
+        self.write("tests/test_beta.py", case.format(n="beta", ok="True"))
+        self.configure_command(["{python}", "-B", ".devframework/run_unittest.py", "--start", "tests", "--jobs", "auto"])
+        run = self.checker("finish")
+        self.assertEqual(run.returncode, 0, run.stderr)
+        self.assertIn("3 total, 0 skipped", run.stdout)  # the seeded fixture test plus these two
+        self.write("tests/test_beta.py", case.format(n="beta", ok="False"))
+        run = self.checker("finish")
+        self.assertEqual(run.returncode, 1)
+        self.assertIn("test_beta.py", run.stdout + run.stderr)
+
     def test_legacy_zero_test_command_is_not_success(self):
         (self.target / "empty_tests").mkdir()
         self.configure_command(["{python}", "-B", "-m", "unittest", "discover", "-s", "empty_tests"])
