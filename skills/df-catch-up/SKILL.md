@@ -28,7 +28,8 @@ unconfirmed.** A drifted document lies confidently; a missing one at least sends
 5. **Host rules**: `df_check(target, "hostcheck")` lists profile rules that fight the framework (footer per reply,
    commit after every change, no tests, read-skill-first …) with a fix each. Show the operator the list once, get one
    decision per line, edit the host file with authorization (backup first), record decisions in `PROJECT.md` →
-   `## Host precedence`. Unrecorded collisions stay doctor warnings — including rules added later.
+   `## Host precedence`. Unrecorded collisions stay doctor warnings — including rules added later. The decision is the operator's: never
+   record `kept`/`replaced` yourself, even when told not to ask — this is the one question the framework requires.
 6. **Audits**: `df_check(target, "selftest")` proves the doctor contract and the secret heuristic fire;
    run `df_check(target, "secrets")` for the worktree; read every repeating operation (timers, polls,
    retries) and write its `cost:` at the scale target — this one is a reading exercise, no tool simulates it.

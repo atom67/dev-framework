@@ -29,6 +29,8 @@ says READY. The documents are true, not decoration: no `TODO(project)` left, fac
    line (replace the host rule, or keep it). With authorization edit the host file (backup first) and record every
    decision in `PROJECT.md` → `## Host precedence` as `- <class>@<file>: replaced <date> | kept — <reason>`.
    Doctor keeps warning about any collision without a recorded line — also for rules added later.
+   The decision is the operator's: never record `kept` or `replaced` on your own, even when told not to ask questions —
+   this is the one question the framework requires (one message, all collisions, proposed fix per line).
 6. `df_check(target, "doctor")` → fix what it lists → `df_check(target, "finish")` once tests exist.
    `finish` needs a Git repository; initialise one if the operator agreed.
 7. Report in numbers: files created, cases written (covered / gap), doctor and finish results, what remains

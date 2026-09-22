@@ -146,7 +146,7 @@ def report(root: Path) -> tuple[list[str], list[str]]:
             resolved.append(f"{k}: {recorded[k]}")
         else:
             unresolved.append(f"HOST CONFLICT {k} ({c['file']}:{c['line']}): \"{c['quote']}\" — {c['why']}. "
-                              f"Fix: {c['fix']}. Then record in PROJECT.md `## Host precedence`: `- {k}: <replaced|kept: reason>`")
+                              f"Fix: {c['fix']}. Ask the operator (their decision, never yours), then record in PROJECT.md `## Host precedence`: `- {k}: <replaced|kept — reason>`")
     return unresolved, resolved
 
 

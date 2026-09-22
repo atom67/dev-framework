@@ -1,6 +1,6 @@
 # DEV Framework evaluation — Scenario S2: migrate scattered-but-complete documentation (variant: {{VARIANT}})
 
-You are being timed and every tool call is counted. Work autonomously: do not ask for permission to run the steps below. Everything you need is in the files; a question to me should not be necessary (if you do ask, it is counted).
+You are being timed and every tool call is counted. Work autonomously: do not ask for permission to run the steps below. Everything you need is in the files; a question to me should not be necessary (if you do ask, it is counted) — with one exception: host-rule conflicts reported by the framework are the operator's decision, ask about them in one message.
 
 ## Step 0 — Install DEV Framework
 <<INSTALL>>
