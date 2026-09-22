@@ -4,18 +4,23 @@ argument-hint: "brief | find <ID|keyword> | index | contract | checklist new|add
 allowed-tools: Bash, Read
 ---
 
+**Which project.** If `$ARGUMENTS` names a path, that is the target. Otherwise the target is the nearest
+directory at or above the working directory that contains `.devframework/`. If there is none, list the immediate
+subdirectories that contain `.devframework/` and **ask the operator which one** — never pick one by recency or
+by guessing, and never run a framework command in a directory that has no framework installed.
+
 Run the navigation command in `$ARGUMENTS` (default `brief`) and work from its output instead of opening documents:
 
 ```bash
-python .devframework/navigate.py brief                 # doctor state, host rules, git (behind/ahead), untested cases, open known errors, active checklist + handoff
-python .devframework/navigate.py find UC-007           # one block, not a file; also works with a keyword
-python .devframework/navigate.py index                 # regenerate docs/INDEX.md
-python .devframework/navigate.py contract              # what doctor and finish demand
-python .devframework/navigate.py checklist new v1 "title"
-python .devframework/navigate.py checklist add v1 "item"
-python .devframework/navigate.py checklist tick v1 2
-python .devframework/navigate.py checklist show
-python .devframework/navigate.py handoff v1 --note "what the next session must know"
+python <TARGET>/.devframework/navigate.py brief                 # doctor state, host rules, git (behind/ahead), untested cases, open known errors, active checklist + handoff
+python <TARGET>/.devframework/navigate.py find UC-007           # one block, not a file; also works with a keyword
+python <TARGET>/.devframework/navigate.py index                 # regenerate docs/INDEX.md
+python <TARGET>/.devframework/navigate.py contract              # what doctor and finish demand
+python <TARGET>/.devframework/navigate.py checklist new v1 "title"
+python <TARGET>/.devframework/navigate.py checklist add v1 "item"
+python <TARGET>/.devframework/navigate.py checklist tick v1 2
+python <TARGET>/.devframework/navigate.py checklist show
+python <TARGET>/.devframework/navigate.py handoff v1 --note "what the next session must know"
 ```
 
 Rules:
