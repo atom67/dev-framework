@@ -72,7 +72,8 @@ class SnapshotFinishTests(WorkspaceTest):
         self.configure_command(["{python}", "-B", "-m", "unittest", "discover", "-s", "empty_tests"])
         legacy = subprocess.run([sys.executable, "-B", "-m", "unittest", "discover", "-s", "empty_tests"],
                                 cwd=self.target, capture_output=True, timeout=30)
-        self.assertEqual(legacy.returncode, 0)  # historical false-green control
+        # historical false-green control: 0 before Python 3.12; 3.12+ exits 5 ("no tests ran")
+        self.assertIn(legacy.returncode, (0, 5))
         run = self.checker("finish")
         self.assertEqual(run.returncode, 1)
         self.assertIn("test evidence", run.stderr)

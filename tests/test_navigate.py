@@ -93,7 +93,8 @@ class NavigateTests(WorkspaceTest):
         import os, stat
         for root in roots:
             for path in root.rglob("*"):
-                os.chmod(path, stat.S_IWRITE | stat.S_IREAD)
+                # directories keep the execute bit: without it Linux cannot enter them to delete anything
+                os.chmod(path, stat.S_IRWXU if path.is_dir() else stat.S_IWRITE | stat.S_IREAD)
 
     def test_find_returns_one_block_or_hits(self):
         code, out = self.nav("find", "UC-102")

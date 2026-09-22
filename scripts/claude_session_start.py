@@ -3,6 +3,10 @@
 
 Silent (exit 0, no output) when the working directory is not a framework project — a hook must never
 add noise to an unrelated session. Standard library only.
+
+The brief is produced by the plugin's own copy of navigate.py, pointed at the project with --root.
+The project supplies only data (Markdown, project.json, git state); no code from the opened
+repository runs at session start, so opening a cloned stranger's repository is safe.
 """
 from __future__ import annotations
 
@@ -12,6 +16,7 @@ import sys
 from pathlib import Path
 
 MAX_CHARS = 4000
+NAVIGATE = Path(__file__).resolve().parents[1] / "template" / ".devframework" / "navigate.py"  # plugin-owned code
 
 
 def project_root() -> Path | None:
@@ -28,7 +33,7 @@ def main() -> int:
     if root is None:
         return 0
     try:
-        run = subprocess.run([sys.executable, "-B", str(root / ".devframework" / "navigate.py"), "brief"],
+        run = subprocess.run([sys.executable, "-B", str(NAVIGATE), "--root", str(root), "brief"],
                              cwd=str(root), capture_output=True, text=True, encoding="utf-8",
                              errors="replace", timeout=60)
     except (OSError, subprocess.TimeoutExpired) as error:

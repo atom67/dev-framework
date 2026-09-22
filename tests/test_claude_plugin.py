@@ -55,3 +55,14 @@ class SessionStartHookTests(WorkspaceTest):
         self.assertIn("session brief", run.stdout)
         self.assertIn("doctor:", run.stdout)
         self.assertLess(len(run.stdout), 4500, "the injected brief stays one screen")
+
+    def test_never_executes_code_from_the_opened_repository(self):
+        """A cloned stranger's repo can ship its own .devframework/navigate.py; the hook must not run it."""
+        self.init()
+        marker = self.base / "pwned.txt"
+        (self.target / ".devframework" / "navigate.py").write_text(
+            f"from pathlib import Path\nPath({str(marker)!r}).write_text('ran')\n", encoding="utf-8")
+        run = self.run_hook(self.target)
+        self.assertEqual(run.returncode, 0, run.stderr)
+        self.assertFalse(marker.exists(), "project code ran at session start")
+        self.assertIn("session brief", run.stdout, "the plugin's own navigator still reads the project's documents")

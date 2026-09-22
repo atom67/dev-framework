@@ -188,6 +188,21 @@ filesystem and are not proven by a process-crash test. No automatic semantic mer
 The framework itself is the same in every host: `template/` + `scripts/install.py` + the `.devframework/` tools,
 standard library only. A host adapter only wraps them — it never holds logic.
 
+### What the Claude Code plugin runs
+
+Checked before you install, so nothing is a surprise:
+
+- **One hook, `SessionStart`.** It runs the plugin's own `scripts/claude_session_start.py` with the Python on
+  your PATH. Outside a framework project (no `.devframework/` up the tree) it exits silently. Inside one, the
+  plugin's own `navigate.py` reads the project's documents and prints a one-screen brief. **No code from the
+  opened repository is executed** — a cloned stranger's repo can ship any `.devframework/`, and it is only read.
+- **One network call, and only inside a framework project:** `git fetch` against that project's own upstream,
+  so the brief can say whether someone else has committed since your last session. Nothing is uploaded.
+- **No MCP servers, no background processes, no telemetry, no dependencies** beyond the Python standard library.
+- **Commands and skills are instructions for the agent**, not programs. `/dev-framework:init` copies templates
+  into a repository only when you run it, never overwrites existing documents, and has `--dry-run`.
+- **Your tests run only when you ask** (`/dev-framework:check finish`), with the command you configured.
+
 ## Hermes plugin
 
 **v1.2.0 (beta; Hermes + Claude Code).** Measured against the same scenarios run without it: 0.33–0.55× the tool calls and
