@@ -11,6 +11,22 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.dont_write_bytecode = True
 
 
+def doc_link_errors(root: Path, check_links) -> list[str]:
+    """Broken links in maintainer docs. The self-hosted .devframework/ is generated and git-ignored, so a
+    fresh clone lacks it; links into it are skipped then. Its source, template/.devframework, is link-checked
+    by the package tests."""
+    generated = (root / ".devframework").resolve()
+    errors = []
+    for path in [root / "README.md", root / "AGENTS.md", *root.joinpath("docs").rglob("*.md")]:
+        if "archive" in path.relative_to(root).parts:
+            continue
+        for error in check_links(root, path, path.read_text(encoding="utf-8")):
+            target = (path.parent / error.split("link: ", 1)[-1].split("#")[0]).resolve()
+            if generated.is_dir() or not target.is_relative_to(generated):
+                errors.append(error)
+    return errors
+
+
 def main() -> int:
     if sys.version_info < (3, 10):
         print("Python 3.10+ is required", file=sys.stderr)
@@ -34,17 +50,10 @@ def main() -> int:
     from verification import check_links
     if show_secrets(ROOT, scan_worktree(snapshot(ROOT))):
         return 1
-    for path in [ROOT / "README.md", ROOT / "AGENTS.md", *ROOT.joinpath("docs").rglob("*.md")]:
-        if "archive" in path.relative_to(ROOT).parts:
-            continue
-        errors = check_links(ROOT, path, path.read_text(encoding="utf-8"))
-        if not ROOT.joinpath(".devframework").is_dir():
-            # ponytail: the self-hosted .devframework/ is generated and git-ignored, so a fresh clone lacks it;
-            # its source (template/.devframework) is link-checked by the package tests
-            errors = [e for e in errors if not e.split("link: ", 1)[-1].startswith(".devframework/")]
-        if errors:
-            print("Maintainer documentation links failed:", *errors, sep="\n")
-            return 1
+    errors = doc_link_errors(ROOT, check_links)
+    if errors:
+        print("Maintainer documentation links failed:", *errors, sep="\n")
+        return 1
     diff = subprocess.run(["git", "diff", "--check"], cwd=ROOT)
     if diff.returncode:
         return diff.returncode
