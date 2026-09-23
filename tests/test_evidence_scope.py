@@ -76,7 +76,8 @@ class SnapshotFinishTests(WorkspaceTest):
         self.assertIn(legacy.returncode, (0, 5))
         run = self.checker("finish")
         self.assertEqual(run.returncode, 1)
-        self.assertIn("test evidence", run.stderr)
+        # <3.12 the command "passes" and the evidence check rejects it; 3.12+ the command itself fails
+        self.assertTrue("test evidence" in run.stderr or "FAILED test" in run.stdout + run.stderr, run.stderr)
 
     def test_safe_adapter_rejects_empty_and_all_skipped_suites(self):
         (self.target / "empty_tests").mkdir()

@@ -67,7 +67,7 @@ SKILL_REF = re.compile(r"(?:скилл?|skill)\s+[`'\"]([A-Za-z0-9_-]+)[`'\"]", 
 
 
 def referenced_skills(files: list[Path]) -> list[Path]:
-    """Skills a host file tells the agent to read (`прочитай скилл \`x\``): their text is host context too."""
+    """Skills a host file tells the agent to read (e.g. "прочитай скилл x"): their text is host context too."""
     roots = [Path(os.environ["HERMES_HOME"]) / "skills"] if os.environ.get("HERMES_HOME") else []
     roots.append(Path.home() / ".hermes" / "skills")
     for home in ([Path(os.environ["HERMES_HOME"])] if os.environ.get("HERMES_HOME") else []) + [Path.home() / ".hermes"]:

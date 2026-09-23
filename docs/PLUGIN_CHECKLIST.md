@@ -121,6 +121,13 @@ any of the above.
 ## Handoff — update at every portion boundary and provider switch
 
 ### 2026-09-22 (written by navigate.py handoff)
+- Branch/commit: main @ 1e5f1e5; uncommitted: 0 file(s)
+- Open items: 17; next: [8] Eval REPORT template gets the 🛠️ Tech / 💬 Message shape itself (eval defect found in the clean run)
+- doctor: READY (structure/configuration; tests not run — run `check.py finish`)
+- Note: PAUSED 2026-09-22. v1.2.1 pushed + tagged (hook runs plugin-owned navigate.py; README 'What the Claude Code plugin runs'). CI RED on all 4 jobs (run for 1e5f1e5). Known so far: (1) py3.13 test_legacy_zero_test_command_is_not_success: finish stderr lacks 'test evidence' — 3.13 prints NO TESTS RAN and exits 5, the gate message differs; (2) SyntaxWarning invalid escape in template/.devframework/hostcheck.py:70 docstring (make it a raw string); (3) py3.10 jobs (win+ubuntu) failures not yet read: gh run view --log-failed. Local Windows py3.11 is green (112 tests, 38s) — reproduce with uv python 3.10/3.13. Owner's from-scratch install test is waiting at 'ставь' — do not continue it until CI is green. Profile is clean: no dev-framework plugin/marketplace installed.
+
+
+### 2026-09-22 (written by navigate.py handoff)
 - Branch/commit: main @ 9d11ad4; uncommitted: 17 file(s)
 - Open items: 17; next: [8] Eval REPORT template gets the 🛠️ Tech / 💬 Message shape itself (eval defect found in the clean run)
 - doctor: READY (structure/configuration; tests not run — run `check.py finish`)

@@ -38,6 +38,10 @@ def main() -> int:
         if "archive" in path.relative_to(ROOT).parts:
             continue
         errors = check_links(ROOT, path, path.read_text(encoding="utf-8"))
+        if not ROOT.joinpath(".devframework").is_dir():
+            # ponytail: the self-hosted .devframework/ is generated and git-ignored, so a fresh clone lacks it;
+            # its source (template/.devframework) is link-checked by the package tests
+            errors = [e for e in errors if not e.split("link: ", 1)[-1].startswith(".devframework/")]
         if errors:
             print("Maintainer documentation links failed:", *errors, sep="\n")
             return 1
