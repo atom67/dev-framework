@@ -118,7 +118,8 @@ def recent_commits(root: Path, count: int) -> list[tuple[str, str]]:
     return [tuple(line.split("\t", 1)) for line in out.splitlines() if "\t" in line]
 
 
-def header(day: date, agents: list[str], codes: list[str], commits: list[tuple[str, str]], visibility_note: str) -> str:
+def header(day: date, agents: list[str], codes: list[str], commits: list[tuple[str, str]], visibility_note: str,
+           dialogue: str | None = None, source: str = "") -> str:
     for sha, summary in commits:
         if sentence_count(summary) > MAX_SUMMARY_SENTENCES:
             raise ValueError(f"Commit {sha}: summary must be at most {MAX_SUMMARY_SENTENCES} sentences")
@@ -129,11 +130,15 @@ def header(day: date, agents: list[str], codes: list[str], commits: list[tuple[s
             f"| Storage | {visibility_note} |\n\n"
             f"## Commits\n\n| Commit | Summary (≤ 3 sentences) |\n|---|---|\n{rows}\n\n"
             "## Dialogue (verbatim)\n\n"
-            "<!-- Paste the dialogue as it happened: **User:** / **Assistant:** turns, in order, unedited.\n"
-            "     Tool outputs may be summarized in [brackets]. Never include secrets. -->\n")
+            + (f"<!-- Filled from the {source}: user and assistant text verbatim, tool calls summarized in [brackets],\n"
+               "     secret-shaped lines redacted. Read it once before committing anything. -->\n\n" + dialogue + "\n"
+               if dialogue else
+               "<!-- Paste the dialogue as it happened: **User:** / **Assistant:** turns, in order, unedited.\n"
+               "     Tool outputs may be summarized in [brackets]. Never include secrets. -->\n"))
 
 
-def new_entry(root: Path, day: date, agents: list[str], codes: list[str], commits: list[tuple[str, str]]) -> Path:
+def new_entry(root: Path, day: date, agents: list[str], codes: list[str], commits: list[tuple[str, str]],
+              dialogue: str | None = None, source: str = "") -> Path:
     cfg = settings(root)
     if not cfg["enabled"]:
         raise ValueError("Devlog is disabled in .devframework/project.json (devlog.enabled)")
@@ -146,7 +151,7 @@ def new_entry(root: Path, day: date, agents: list[str], codes: list[str], commit
     path = directory / file_name(day, agents, codes)
     if path.exists():
         raise ValueError(f"Devlog already exists: {path.relative_to(root).as_posix()} — append to it instead")
-    path.write_text(header(day, agents, codes, commits, reason), encoding="utf-8")
+    path.write_text(header(day, agents, codes, commits, reason, dialogue, source), encoding="utf-8")
     return path
 
 

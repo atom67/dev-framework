@@ -31,7 +31,11 @@ When disabled nothing is written and no reminder is printed.
   `**Assistant:**`, in order, unedited. Tool outputs may be summarized in `[brackets]`.
   Never secrets, tokens, credentials or private data of third parties.
 
-Create the skeleton (header from git, body left for the agent to paste):
+Create the entry (header from git; the body is filled from the host's session log — an agent cannot recall its
+own transcript). `--dialogue auto` (default) reads this project's Claude Code session log, `hermes[:<session id>]`
+reads Hermes state.db, `<file.jsonl>` a given log, `none` leaves the body to paste. User and assistant text stays
+verbatim, tool calls become one `[tools: …]` line, system reminders are dropped and secret-shaped lines redacted.
+`--codes` is optional; without it the kind stands in (`TOOL`, `EXPLORE`, `PRODUCT`).
 
 ```text
 python .devframework/check.py devlog --agent claudecode-OPUS5 --codes FR-005,UC-004 --from-git 2

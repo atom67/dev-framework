@@ -174,9 +174,13 @@ def devlog_entry(root: Path, args) -> int:
         commits.append((sha.strip(), summary.strip()))
     from verification import installed_kind
     codes = args.codes.split(",") if args.codes else [installed_kind(root).upper()]  # a tool has no FR/UC ids
-    path = devlog_mod.new_entry(root, day, args.agent, codes, commits)
+    import transcript
+    dialogue, source = transcript.dialogue(root, args.dialogue, day)
+    path = devlog_mod.new_entry(root, day, args.agent, codes, commits, dialogue, source)
     local_only, reason = devlog_mod.keep_local(root)
-    print(f"DEVLOG CREATED: {path.relative_to(root).as_posix()} ({reason}); paste the dialogue under '## Dialogue (verbatim)'")
+    filled = f"dialogue filled from the {source}; read it once" if dialogue else \
+        f"{source}; paste the dialogue under '## Dialogue (verbatim)'"
+    print(f"DEVLOG CREATED: {path.relative_to(root).as_posix()} ({reason}); {filled}")
     return 0
 
 
@@ -198,6 +202,7 @@ def main() -> int:
     log = sub.add_parser("devlog", help="create a devlog skeleton (optional rule, see DEVLOG.md)")
     log.add_argument("--agent", action="append", required=True, metavar="CLIENT-MODEL",
                      help="who drove the dialogue, e.g. claudecode-OPUS5; repeat once for the second model when models switched")
+    log.add_argument("--dialogue", default="auto", help="auto (this project's Claude Code session log) | none | <session.jsonl> | hermes[:<session id>]")
     log.add_argument("--codes", help="comma-separated FR/UC/KE codes the dialogue touched; default: the kind (TOOL, EXPLORE)")
     log.add_argument("--date", help="dialogue date YYYY-MM-DD (default today)")
     log.add_argument("--from-git", type=int, default=0, metavar="N", help="take the last N commits from git log")

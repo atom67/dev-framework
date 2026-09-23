@@ -1,6 +1,7 @@
 """Small, explicit documentation/configuration checks; not a language-aware analyzer."""
 from __future__ import annotations
 
+from datetime import date
 import json
 from pathlib import Path
 import re
@@ -48,6 +49,26 @@ KIND_EXCLUDES = {"product": frozenset({GUIDE}), "tool": PRODUCT_ONLY, "explore":
 
 def required(kind: str = "product") -> tuple[str, ...]:
     return tuple(n for n in REQUIRED if n not in KIND_EXCLUDES[kind]) + ((GUIDE,) if kind == "tool" else ())
+
+
+WIP = re.compile(r"<!--\s*under-construction:\s*(.*?)\s*-->", re.S)
+
+
+def under_construction(relative: str, text: str) -> tuple[str, date | None] | None:
+    """`<!-- under-construction: reason (until YYYY-MM-DD) -->` in PROJECT.md or docs/: (reason, until) or None.
+
+    Only project-owned documents can be marked; a marker in AGENTS.md, CLAUDE.md or .devframework/ is ignored.
+    """
+    if relative != "PROJECT.md" and not relative.startswith("docs/"):
+        return None
+    match = WIP.search(text)
+    if not match:
+        return None
+    until = re.search(r"until (\d{4}-\d{2}-\d{2})", match[1])
+    try:
+        return match[1], date.fromisoformat(until[1]) if until else None
+    except ValueError:
+        return match[1], None
 
 
 def installed_kind(root: Path) -> str:
@@ -228,6 +249,21 @@ def check_links(root: Path, path: Path, text: str) -> list[str]:
     return errors
 
 
+def skip_under_construction(relative: str, text: str, wip: list[str], warnings: list[str]) -> bool:
+    """True when the document's checks are skipped; every marked document is reported, expired ones are checked."""
+    marker = under_construction(relative, text)
+    if marker is None:
+        return False
+    reason, until = marker
+    if until is not None and until < date.today():
+        warnings.append(f"UNDER CONSTRUCTION expired {until.isoformat()}: {relative} — its checks apply again; "
+                        "finish the work or move the date")
+        return False
+    wip.append(relative)
+    warnings.append(f"UNDER CONSTRUCTION (document checks skipped): {relative} — {reason}")
+    return True
+
+
 def doctor(root: Path) -> dict:
     root = checked_path(root)
     errors, setup, warnings = [], [], []
@@ -269,11 +305,13 @@ def doctor(root: Path) -> dict:
         for path in folder.rglob("*.md"):
             if not any(p in ("archive", "backups") for p in path.relative_to(folder).parts):
                 candidates.append(path)
-    texts = {}
+    texts, wip = {}, []
     for path in candidates:
         try:
             text = checked_path(path).read_text(encoding="utf-8")
             texts[path.relative_to(root).as_posix()] = text
+            if skip_under_construction(path.relative_to(root).as_posix(), text, wip, warnings):
+                continue
             errors.extend(check_links(root, path, text))
             if re.search(r"\{\{[A-Z_]+\}\}", text):
                 errors.append(f"Unresolved install placeholder: {path.relative_to(root)}")
@@ -284,7 +322,8 @@ def doctor(root: Path) -> dict:
 
     if kind == "tool":
         try:
-            if "TODO(project):" in child(root, GUIDE).read_text(encoding="utf-8"):
+            guide = child(root, GUIDE).read_text(encoding="utf-8")
+            if not skip_under_construction(GUIDE, guide, wip, warnings) and "TODO(project):" in guide:
                 setup.append(f"Write the user guide in {GUIDE}: what the tool does, how to run it, examples, limits")
         except (OSError, ValueError) as error:
             errors.append(f"Cannot inspect {GUIDE}: {type(error).__name__}")
@@ -297,12 +336,13 @@ def doctor(root: Path) -> dict:
     if profile and f".devframework/profiles/{profile}.md" not in texts.get("PROJECT.md", ""):
         errors.append(f"PROJECT.md must keep the selected-profile link for project.json's profile: "
                       f"the literal path `.devframework/profiles/{profile}.md` (e.g. `[the selected profile](.devframework/profiles/{profile}.md)`)")
-    ids = re.findall(r"(?m)^\|\s*((?:FR|NFR)-\d+)\s*\|", unfenced(texts.get("docs/REQUIREMENTS.md", "")))
+    requirements = "" if "docs/REQUIREMENTS.md" in wip else texts.get("docs/REQUIREMENTS.md", "")
+    ids = re.findall(r"(?m)^\|\s*((?:FR|NFR)-\d+)\s*\|", unfenced(requirements))
     duplicates = sorted({value for value in ids if ids.count(value) > 1})
     if duplicates:
         errors.append("Duplicate requirement definitions: " + ", ".join(duplicates))
     use_cases = texts.get("docs/USE_CASES.md")
-    if use_cases:
+    if use_cases and "docs/USE_CASES.md" not in wip:
         errors.extend(check_use_case_catalogue(unfenced(use_cases)))
     if len(texts.get("AGENTS.md", "").encode("utf-8")) > 24 * 1024:
         warnings.append("Large AGENTS.md; inspect actual provider loading limits and scoped overrides")
@@ -314,4 +354,4 @@ def doctor(root: Path) -> dict:
     except Exception as error:  # never let a host scan break the doctor
         warnings.append(f"hostcheck unavailable: {error}")
     return {"errors": errors, "setup": sorted(set(setup)), "warnings": warnings,
-            "ready": not errors and not setup, "kind": kind}
+            "ready": not errors and not setup, "kind": kind, "under_construction": wip}

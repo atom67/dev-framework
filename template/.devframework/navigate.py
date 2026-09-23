@@ -126,11 +126,14 @@ def doctor_line(root: Path) -> str:
         report = doctor(root)
     except Exception as error:  # doctor itself is the authority; the brief only summarises it
         return f"doctor: unavailable ({error})"
+    wip = report.get("under_construction") or []
+    note = f" · under construction: {', '.join(wip)}" if wip else ""
     if report["errors"]:
-        return f"doctor: STRUCTURE FAILED — {report['errors'][0]}" + (f" (+{len(report['errors']) - 1})" if len(report["errors"]) > 1 else "")
+        more = f" (+{len(report['errors']) - 1})" if len(report["errors"]) > 1 else ""
+        return f"doctor: STRUCTURE FAILED — {report['errors'][0]}{more}{note}"
     if not report["ready"]:
-        return f"doctor: NOT READY — {len(report['setup'])} setup items, first: {report['setup'][0]}"
-    return "doctor: READY (structure/configuration; tests not run — run `check.py finish`)"
+        return f"doctor: NOT READY — {len(report['setup'])} setup items, first: {report['setup'][0]}{note}"
+    return f"doctor: READY (structure/configuration; tests not run — run `check.py finish`){note}"
 
 
 def brief(root: Path) -> str:
@@ -221,6 +224,8 @@ def index(root: Path) -> Path:
 
 CONTRACT = """\
 DEV Framework contract (what the gates check). Details: .devframework/VERIFICATION.md; rules: AGENTS.md.
+wip     = `<!-- under-construction: reason (until YYYY-MM-DD) -->` in PROJECT.md or docs/: doctor skips that
+          document's checks and names it every run; never secrets, tests or file presence; expires on the date.
 kind    = product (this contract). A tool or an exploration prints its own; promote with --update --kind.
 doctor  = structure + configuration. READY needs: every framework file present; PROJECT.md and docs/ARCHITECTURE.md
           without `TODO(project):`; .devframework/project.json with a reviewed `test` argv (build may be null with a
@@ -318,6 +323,8 @@ def handoff(root: Path, slug: str, note: str) -> str:
 KIND_CONTRACT = {
     "tool": """\
 DEV Framework contract for a TOOL (what the gates check). Rules: AGENTS.md.
+wip     = `<!-- under-construction: reason (until YYYY-MM-DD) -->` in PROJECT.md or docs/: doctor skips that
+          document's checks and names it every run; never secrets, tests or file presence; expires on the date.
 doctor  = structure + configuration. READY needs: PROJECT.md and docs/GUIDE.html without `TODO(project):`
           (the guide is the user's instruction: install, run, examples, errors, limits); 1-3 `smoke` examples in
           .devframework/project.json: {"name", "run": [argv, "{python}" allowed], "stdin"?, "expect_stdout": file |
@@ -328,6 +335,8 @@ commit-check = finish + index/worktree parity + staged-blob secret scan. Only be
 Grow into a product: install.py --update --kind product --scale "<target>" (adds documents, overwrites none).""",
     "explore": """\
 DEV Framework contract for an EXPLORATION (what the gates check). Rules: AGENTS.md.
+wip     = `<!-- under-construction: reason (until YYYY-MM-DD) -->` in PROJECT.md or docs/: doctor skips that
+          document's checks and names it every run; never secrets, tests or file presence; expires on the date.
 doctor  = structure + configuration. READY needs: PROJECT.md without `TODO(project):` (intent, open questions).
 finish  = doctor + secret heuristic + tests if a test command is configured; without one it passes and says
           plainly that behaviour is NOT proven. Record what you learn, dated, under "What we learned".

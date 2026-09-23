@@ -124,6 +124,12 @@ does not renumber them.
 A tool's behaviour is defined by its smoke examples (`smoke` in project.json: input → expected
 output). A change in behaviour changes an example first, then the code, then the guide.
 <!-- /kind -->
+**Under construction.** A document in long rework — waiting for code, tests or a decision — may carry one
+line `<!-- under-construction: <reason> (until YYYY-MM-DD) -->`. Doctor then skips that document's checks
+(placeholders, links, catalogue rules), names it on every run and in the brief, and applies the checks again
+after the date. Only PROJECT.md and docs/ can be marked; secrets, tests and the presence of required files are
+never skipped. Remove the line in the iteration that finishes the work; a marker is not a place to park debt.
+
 Reconcile the checklist before and after each iteration. Discovered work enters it
 before implementation; a material scope change needs agreement. An item is done only
 after it is built and verified. Keep the checklist active while awaiting acceptance;
@@ -209,7 +215,8 @@ Acceptance, commit and deployment are separate events.
 
 **Devlog (optional).** When `devlog.enabled` is true in `.devframework/project.json`, every
 finalized dialogue gets a verbatim log file before the push: `python .devframework/check.py
-devlog --agent <client-MODEL> --codes <FR/UC codes> --from-git N`, then paste the dialogue. For public or
+devlog --agent <client-MODEL> [--codes <FR/UC codes>] --from-git N`. The dialogue is filled from the host's session
+log (Claude Code by default; `--dialogue hermes[:<session>]` in Hermes); read it once. For public or
 unknown-visibility repositories the log stays local and git-ignored. Rules and format:
 [.devframework/DEVLOG.md](.devframework/DEVLOG.md).
 

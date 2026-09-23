@@ -216,6 +216,13 @@ Checked before you install, so nothing is a surprise:
 A project grows without losing anything: `install.py --update --kind tool`, or `--kind product --scale "100 users"`,
 adds the missing documents, overwrites none, and doctor lists what the new kind demands. It never goes back down.
 
+**Long rework:** mark a document with `<!-- under-construction: <reason> (until YYYY-MM-DD) -->` (PROJECT.md or
+docs/ only). Doctor skips its document checks, names it on every run and in the brief, and checks it again after the
+date; secrets, tests and required files are never skipped.
+
+**Devlog** (optional, asked at install): the entry is filled from the host's own session log — Claude Code's
+transcript by default, Hermes state.db on request — with tool calls summarized and secret-shaped lines redacted.
+
 ### Plugin or just the framework?
 
 The framework does not need the plugin. `install.py` puts `AGENTS.md` into the project, and it already tells any agent to
@@ -227,7 +234,7 @@ Prefer per-project installs? `claude plugin install dev-framework@dev-framework 
 
 ## Hermes plugin
 
-**v1.3.1 (beta; Hermes + Claude Code).** On Hermes, the plugin runs of three scenarios used 0.33–0.55× the tool calls and
+**v1.4.0 (beta; Hermes + Claude Code).** On Hermes, the plugin runs of three scenarios used 0.33–0.55× the tool calls and
 0.30–0.47× the input tokens of the same scenarios run with skills only, with equal or better documentation quality.
 **Caveat:** the two variants ran on different models (skills on grok-4.6, plugin on gpt-5.6-terra), so the ratio mixes
 the plugin's effect with the model's; a same-model re-run is planned, and none of it was measured in Claude Code yet.

@@ -179,5 +179,5 @@ any of the above.
 - [x] Test finding: a 3-line library got 48 files, 9 reliability recipes and a requests/second worked example — evidence for the lite-profile decision → operator decided: no lite profile (2026-09-23)
 - [ ] Test finding: .hermes.md installed for a Claude Code user — host-aware install (hosts plan, phase 0)
 - [ ] Test finding: hostcheck does not see settings.json hooks that block tool calls (GateGuard blocked twice) — list them as informational
-- [ ] Tool test finding: a tool still receives the 9 pattern recipes + knowledge map (.devframework, agent-facing, read on demand, no token cost) — drop them for tool/explore only if the operator wants a leaner tree; the links cascade through KNOWLEDGE_MAP and AGENTS.md
-- [ ] Tool test finding: devlog asks the agent to paste the dialogue verbatim, but an agent cannot read its own transcript — generate the entry from the host's session log (Claude Code ~/.claude/projects/*.jsonl, Hermes state.db)
+- [x] **Decided 2026-09-23 by the operator: keep them.** Tool test finding: a tool still receives the 9 pattern recipes + knowledge map (.devframework, agent-facing, read on demand, no token cost) — drop them for tool/explore only if the operator wants a leaner tree; the links cascade through KNOWLEDGE_MAP and AGENTS.md
+- [x] **Done in v1.4.0 (transcript.py).** Tool test finding: devlog asks the agent to paste the dialogue verbatim, but an agent cannot read its own transcript — generate the entry from the host's session log (Claude Code ~/.claude/projects/*.jsonl, Hermes state.db)
