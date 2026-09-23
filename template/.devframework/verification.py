@@ -38,7 +38,28 @@ def valid_command(value: object) -> bool:
     return isinstance(value, list) and bool(value) and all(isinstance(v, str) and v.strip() for v in value)
 
 
-def load_config(root: Path) -> tuple[dict, list[str], list[str]]:
+KINDS = ("product", "tool", "explore")  # what is being built; the profile says where and how it runs
+PRODUCT_ONLY = frozenset({
+    "docs/REQUIREMENTS.md", "docs/BACKLOG.md", "docs/ARCHITECTURE.md", "docs/REGRESSION_TEST.md", "docs/RELEASE.md",
+    "docs/USE_CASES.md", "docs/USE_CASE_TEMPLATE.md", "docs/USE_CASES_SLICE_TEMPLATE.md", "docs/INVARIANTS.md"})
+GUIDE = "docs/GUIDE.html"  # a tool's user instruction: one self-contained page instead of the product document set
+KIND_EXCLUDES = {"product": frozenset({GUIDE}), "tool": PRODUCT_ONLY, "explore": PRODUCT_ONLY | {GUIDE}}
+
+
+def required(kind: str = "product") -> tuple[str, ...]:
+    return tuple(n for n in REQUIRED if n not in KIND_EXCLUDES[kind]) + ((GUIDE,) if kind == "tool" else ())
+
+
+def installed_kind(root: Path) -> str:
+    """The kind recorded at installation. Manifests written before 1.3.0 carry none: they mean product."""
+    try:
+        kind = json.loads(child(root, ".devframework/manifest.json").read_text(encoding="utf-8"))["parameters"].get("kind")
+    except (ValueError, OSError, KeyError, TypeError, AttributeError):
+        return "product"
+    return kind if kind in KINDS else "product"
+
+
+def load_config(root: Path, kind: str = "product") -> tuple[dict, list[str], list[str]]:
     errors, setup = [], []
     config = json.loads(child(root, ".devframework/project.json").read_text(encoding="utf-8"))
     if not isinstance(config, dict) or type(config.get("format")) is not int or config["format"] != 1:
@@ -54,6 +75,8 @@ def load_config(root: Path) -> tuple[dict, list[str], list[str]]:
         return config, errors + ["commands must be an object"], setup
     for name in ("build", "test"):
         value = commands.get(name)
+        if value is None and name == "test" and kind == "explore":
+            continue  # exploring: tests are welcome, not required; finish says that nothing was proven
         if value is None:
             reason = config.get("build_not_applicable")
             if name != "build" or not isinstance(reason, str) or not reason.strip():
@@ -63,6 +86,8 @@ def load_config(root: Path) -> tuple[dict, list[str], list[str]]:
                 setup.append(f"Configure {name} command" + hint)
         elif not valid_command(value):
             errors.append(f"{name} must be a nonempty argument array, not a shell string")
+    if kind == "tool" and not config.get("smoke"):
+        setup.append("Add 1-3 smoke examples (input -> expected output) to `smoke` in project.json: the tool proves itself on them")
     checks = commands.get("checks")
     if not isinstance(checks, list) or not all(valid_command(c) for c in checks):
         errors.append("checks must be an array of nonempty argument arrays (empty list allowed)")
@@ -206,7 +231,9 @@ def check_links(root: Path, path: Path, text: str) -> list[str]:
 def doctor(root: Path) -> dict:
     root = checked_path(root)
     errors, setup, warnings = [], [], []
-    for name in REQUIRED:
+    kind = installed_kind(root)
+    needed = required(kind)
+    for name in needed:
         try:
             if not child(root, name).is_file():
                 errors.append(f"Missing required file: {name}")
@@ -223,14 +250,14 @@ def doctor(root: Path) -> dict:
         elif not isinstance(manifest.get("version"), str) or not re.fullmatch(r"\d+\.\d+\.\d+", manifest["version"]):
             errors.append("Invalid installed framework version")
         else:
-            for name in set(REQUIRED) - {".devframework/manifest.json"}:
+            for name in set(needed) - {".devframework/manifest.json"}:
                 entry = manifest["files"].get(name)
                 if not isinstance(entry, dict) or not isinstance(entry.get("sha256"), str) or not re.fullmatch(r"[0-9a-f]{64}", entry["sha256"]):
                     errors.append(f"Manifest has no valid baseline for {name}")
     except (ValueError, OSError):
         errors.append("Unreadable installation manifest")
     try:
-        config, config_errors, config_setup = load_config(root)
+        config, config_errors, config_setup = load_config(root, kind)
         errors.extend(config_errors)
         setup.extend(config_setup)
     except (ValueError, OSError):
@@ -255,6 +282,12 @@ def doctor(root: Path) -> dict:
         except (OSError, ValueError) as error:
             errors.append(f"Cannot inspect {path.relative_to(root)}: {type(error).__name__}")
 
+    if kind == "tool":
+        try:
+            if "TODO(project):" in child(root, GUIDE).read_text(encoding="utf-8"):
+                setup.append(f"Write the user guide in {GUIDE}: what the tool does, how to run it, examples, limits")
+        except (OSError, ValueError) as error:
+            errors.append(f"Cannot inspect {GUIDE}: {type(error).__name__}")
     adapter = unfenced(texts.get("CLAUDE.md", ""))
     if not all(re.search(rf"(?m)^@{re.escape(name)}\s*$", adapter) for name in ("AGENTS.md", "PROJECT.md")):
         errors.append("CLAUDE.md must import @AGENTS.md and @PROJECT.md outside code fences")
@@ -281,4 +314,4 @@ def doctor(root: Path) -> dict:
     except Exception as error:  # never let a host scan break the doctor
         warnings.append(f"hostcheck unavailable: {error}")
     return {"errors": errors, "setup": sorted(set(setup)), "warnings": warnings,
-            "ready": not errors and not setup}
+            "ready": not errors and not setup, "kind": kind}

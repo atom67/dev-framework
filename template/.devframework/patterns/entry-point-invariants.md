@@ -12,7 +12,7 @@ violation defeats the product, including non-UI entry points.
 Every ordinary entry point enforces the domain rule before the protected effect.
 
 1. Register the invariant, owner, guarded effect and applicable states in
-   [the invariant register](../../docs/INVARIANTS.md). Enumerate buttons, tray/menu actions,
+   the invariant register (`docs/INVARIANTS.md` in a product). Enumerate buttons, tray/menu actions,
    hotkeys, API handlers, timers, startup/recovery and shared consumers that can reach it.
 2. Enforce at the domain/effect boundary, not just a dialog or disabled button. A callback
    being invoked is not proof its cancellation result is respected by the caller.

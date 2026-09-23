@@ -14,11 +14,13 @@ PACKAGE = Path(__file__).resolve().parents[1]
 sys.dont_write_bytecode = True
 sys.path.insert(0, str(PACKAGE / "template" / ".devframework"))
 from safety import atomic_write, checked_path, child, digest, disjoint, project_lock
-from verification import REQUIRED
+from verification import KIND_EXCLUDES, KINDS, required
 
 MANIFEST = ".devframework/manifest.json"
 PENDING = ".devframework/pending.json"
 PROFILES = ("generic", "personal-desktop", "service")
+KIND_RANK = {"explore": 0, "tool": 1, "product": 2}  # a project grows up, never down: documents are never removed
+KIND_BLOCK = re.compile(r"<!-- kind: ([a-z, ]+) -->\n?(.*?)<!-- /kind -->\n?", re.S)
 
 
 def json_bytes(value: object) -> bytes:
@@ -32,7 +34,7 @@ def read_json(path: Path) -> dict:
     return data
 
 
-def parameters(name: str, scale: str, profile: str) -> dict:
+def parameters(name: str, scale: str, profile: str, kind: str = "product") -> dict:
     if not isinstance(name, str) or not name.strip() or len(name) > 120 or any(ord(c) < 32 for c in name) or "{{" in name:
         raise ValueError("Project name must be 1..120 printable characters, without template markers")
     # A leading integer and any short unit text: "50,000 users", "1 user (personal tool)", "200 devices / 3 sites".
@@ -43,7 +45,9 @@ def parameters(name: str, scale: str, profile: str) -> dict:
     count = int(match[1].replace(",", ""))
     if count > 1_000_000_000 or profile not in PROFILES:
         raise ValueError("Scale exceeds 1 billion or profile is unknown")
-    return {"name": name, "count": count, "unit": match[2].strip(), "profile": profile}
+    if kind not in KINDS:
+        raise ValueError(f"Kind must be one of {', '.join(KINDS)}")
+    return {"name": name, "count": count, "unit": match[2].strip(), "profile": profile, "kind": kind}
 
 
 def seed_file(path: str) -> bool:
@@ -59,10 +63,15 @@ def ask_devlog() -> bool:
     return answer in {"y", "yes"}
 
 
+def select_kind(text: str, kind: str) -> str:
+    """Keep `<!-- kind: product, tool -->...<!-- /kind -->` blocks that name this kind; drop the others."""
+    return KIND_BLOCK.sub(lambda m: m[2] if kind in [k.strip() for k in m[1].split(",")] else "", text)
+
+
 def render(source: Path, params: dict) -> dict[str, bytes]:
-    count = params["count"]
+    count, kind = params["count"], params.get("kind", "product")
     replacements = {
-        "PROJECT_NAME": params["name"], "PROFILE": params["profile"],
+        "PROJECT_NAME": params["name"], "PROFILE": params["profile"], "KIND": kind,
         "SCALE_COUNT": str(count), "SCALE_UNIT": params["unit"],
         "SCALE_TARGET": f"{count:,} {params['unit']}",
         "REQUESTS_DAY": f"{count * 1440:,}", "REQUESTS_SECOND": f"{count / 60:,.2f}",
@@ -75,7 +84,9 @@ def render(source: Path, params: dict) -> dict[str, bytes]:
         checked_path(item)
         if "__pycache__" in item.parts or item.suffix == ".pyc" or not item.is_file():
             continue
-        text = item.read_text(encoding="utf-8")
+        if item.relative_to(template).as_posix() in KIND_EXCLUDES[kind]:
+            continue
+        text = select_kind(item.read_text(encoding="utf-8"), kind)
         for key, value in replacements.items():
             text = text.replace("{{" + key + "}}", value)
         # A malformed package must fail before touching the target.
@@ -83,14 +94,20 @@ def render(source: Path, params: dict) -> dict[str, bytes]:
             raise ValueError(f"Unresolved template variable: {item.name}")
         files[item.relative_to(template).as_posix()] = text.encode("utf-8")
     files[".devframework/LESSONS.md"] = checked_path(source / "LESSONS.md").read_bytes()
-    files[".devframework/project.json"] = json_bytes({
+    test = {"product": None, "explore": None,
+            "tool": ["{python}", "-B", ".devframework/run_smoke.py"]}[kind]  # a tool proves itself on examples
+    config = {
         "format": 1, "profile": params["profile"], "timeout_seconds": 300,
-        "commands": {"build": None, "test": None, "checks": []},
-        "build_not_applicable": None,
+        "commands": {"build": None, "test": test, "checks": []},
+        "build_not_applicable": {"product": None, "tool": "A script run directly; change this if the tool is compiled or packaged",
+                                 "explore": "Exploring: nothing is built yet"}[kind],
         "test_evidence": {"format": "devframework-v1", "max_skipped": 0},
         "devlog": {"enabled": bool(params.get("devlog", False)), "dir": "docs/devlog", "commit": False},
-    })
-    missing = set(REQUIRED) - {MANIFEST} - files.keys()
+    }
+    if kind == "tool":
+        config["smoke"] = []
+    files[".devframework/project.json"] = json_bytes(config)
+    missing = set(required(kind)) - {MANIFEST} - files.keys()
     if missing:
         raise ValueError("Incomplete package: " + ", ".join(sorted(missing)))
     return files
@@ -112,8 +129,8 @@ def load_manifest(target: Path) -> dict | None:
     p = value.get("parameters", {})
     if not isinstance(p, dict):
         raise ValueError("Invalid manifest parameters")
-    validated = parameters(p.get("name", ""), f"{p.get('count')} {p.get('unit')}", p.get("profile"))
-    if validated != p:
+    validated = parameters(p.get("name", ""), f"{p.get('count')} {p.get('unit')}", p.get("profile"), p.get("kind", "product"))
+    if validated != {**p, "kind": p.get("kind", "product")}:  # manifests before 1.3.0 have no kind: product
         raise ValueError("Invalid manifest parameters")
     return value
 
@@ -230,7 +247,7 @@ def apply_plan(target: Path, plan: list[dict], manifest: dict) -> str | None:
 
 
 def install(target: Path, *, source: Path = PACKAGE, name: str | None = None,
-            scale: str | None = None, profile: str | None = None, update: bool = False,
+            scale: str | None = None, profile: str | None = None, kind: str | None = None, update: bool = False,
             force: bool = False, dry_run: bool = False, devlog: bool = False) -> dict:
     source, target = checked_path(source), checked_path(target)
     disjoint(source, target)
@@ -241,11 +258,21 @@ def install(target: Path, *, source: Path = PACKAGE, name: str | None = None,
         raise ValueError("No manifest; use init/adoption for a legacy project, not update")
     if previous and not update:
         raise ValueError("Already installed; use --update (or --dry-run --update)")
-    old = previous["parameters"] if previous else {}
-    params = parameters(name or old.get("name", ""), scale or f"{old.get('count', 10000)} {old.get('unit', 'users')}",
-                        profile or old.get("profile", "generic"))
-    if previous and params != old:
-        raise ValueError("Update preserves installation parameters; edit project-owned facts separately")
+    old = {**previous["parameters"], "kind": previous["parameters"].get("kind", "product")} if previous else {}
+    kind = kind or old.get("kind", "product")
+    default_scale = "10000 users" if kind == "product" else "1 user"  # scale is a product decision; tools do not ask
+    params = parameters(name or old.get("name", ""),
+                        scale or (f"{old['count']} {old['unit']}" if previous else default_scale),
+                        profile or old.get("profile", "generic"), kind)
+    if previous:
+        promoting = KIND_RANK[kind] - KIND_RANK[old["kind"]]
+        if promoting < 0:
+            raise ValueError(f"A project grows, never shrinks: {old['kind']} cannot become {kind} (documents are never removed)")
+        if kind == "product" and promoting and not scale:
+            raise ValueError("Promotion to product needs --scale: the target scale is the operator's product decision")
+        fixed = ("name", "profile") if kind == "product" and promoting else ("name", "profile", "count", "unit")
+        if any(params[k] != old[k] for k in fixed):
+            raise ValueError("Update preserves installation parameters; edit project-owned facts separately")
     version = checked_path(source / "VERSION").read_text(encoding="utf-8").strip()
     if not re.fullmatch(r"\d+\.\d+\.\d+", version):
         raise ValueError("Package VERSION must be numeric major.minor.patch")
@@ -286,6 +313,8 @@ def main() -> int:
     parser.add_argument("--name")
     parser.add_argument("--scale", help="e.g. '50,000 users'; defaults to 10,000 on init")
     parser.add_argument("--profile", choices=PROFILES)
+    parser.add_argument("--kind", choices=KINDS, help="what is being built: product (default), tool, explore; "
+                        "with --update it promotes explore → tool → product and never removes documents")
     parser.add_argument("--update", action="store_true")
     parser.add_argument("--force", action="store_true", help="replace conflicted framework files WITH backup; never project documents")
     parser.add_argument("--dry-run", action="store_true", help="preview without creating or writing anything")
@@ -296,7 +325,7 @@ def main() -> int:
     args = parser.parse_args()
     try:
         if args.recover:
-            if args.dry_run or args.update or args.force or args.name or args.scale or args.profile:
+            if args.dry_run or args.update or args.force or args.name or args.scale or args.profile or args.kind:
                 raise ValueError("--recover cannot be combined with install/update options")
             target = checked_path(args.target)
             disjoint(checked_path(PACKAGE), target)
@@ -307,7 +336,7 @@ def main() -> int:
             print("Interrupted installation rolled back; backups retained.")
             return 0
         devlog_on = True if args.devlog else False if (args.no_devlog or args.update or args.dry_run) else ask_devlog()
-        result = install(args.target, name=args.name, scale=args.scale, profile=args.profile, devlog=devlog_on,
+        result = install(args.target, name=args.name, scale=args.scale, profile=args.profile, kind=args.kind, devlog=devlog_on,
                          update=args.update, force=args.force, dry_run=args.dry_run)
         print(json.dumps(result, ensure_ascii=False, indent=2))
         if result["conflicts"]:

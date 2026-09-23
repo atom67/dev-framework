@@ -203,6 +203,19 @@ Checked before you install, so nothing is a surprise:
   into a repository only when you run it, never overwrites existing documents, and has `--dry-run`.
 - **Your tests run only when you ask** (`/dev-framework:check finish`), with the command you configured.
 
+### What are you building? product, tool or explore
+
+`init` asks, and the answer decides the documents and the proof:
+
+| Kind | For | Documents | Proof in `finish` |
+|---|---|---|---|
+| **product** | software with users that will grow | the full set: requirements, backlog, architecture, use cases with tests, regression plan, invariants, release | tests with counted evidence (`run_unittest.py` or `run_pytest.py`) |
+| **tool** | a script or utility for one job | `PROJECT.md`, a user guide `docs/GUIDE.html`, known errors — no backlog, no regression suite | the tool itself, run on 1-3 examples (`smoke` in `project.json`) by `run_smoke.py` |
+| **explore** | not yet known what it becomes | `PROJECT.md` (intent, open questions, what we learned), known errors | optional; without tests `finish` says plainly that behaviour is unproven |
+
+A project grows without losing anything: `install.py --update --kind tool`, or `--kind product --scale "100 users"`,
+adds the missing documents, overwrites none, and doctor lists what the new kind demands. It never goes back down.
+
 ### Plugin or just the framework?
 
 The framework does not need the plugin. `install.py` puts `AGENTS.md` into the project, and it already tells any agent to
@@ -214,7 +227,7 @@ Prefer per-project installs? `claude plugin install dev-framework@dev-framework 
 
 ## Hermes plugin
 
-**v1.2.3 (beta; Hermes + Claude Code).** On Hermes, the plugin runs of three scenarios used 0.33–0.55× the tool calls and
+**v1.3.0 (beta; Hermes + Claude Code).** On Hermes, the plugin runs of three scenarios used 0.33–0.55× the tool calls and
 0.30–0.47× the input tokens of the same scenarios run with skills only, with equal or better documentation quality.
 **Caveat:** the two variants ran on different models (skills on grok-4.6, plugin on gpt-5.6-terra), so the ratio mixes
 the plugin's effect with the model's; a same-model re-run is planned, and none of it was measured in Claude Code yet.

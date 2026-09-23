@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{PROJECT_NAME}} — guide</title>
+<style>
+  :root { --text: #1d1d1f; --muted: #5f6368; --bg: #fff; --code: #f3f4f6; --line: #e5e7eb; }
+  @media (prefers-color-scheme: dark) { :root { --text: #e8eaed; --muted: #9aa0a6; --bg: #17181a; --code: #26282b; --line: #3a3d41; } }
+  body { font: 16px/1.6 system-ui, sans-serif; color: var(--text); background: var(--bg); max-width: 46rem; margin: 2rem auto; padding: 0 1rem; }
+  h1 { margin-bottom: 0.2rem; } .lead { color: var(--muted); margin-top: 0; }
+  h2 { border-top: 1px solid var(--line); padding-top: 1rem; margin-top: 2rem; }
+  pre, code { background: var(--code); border-radius: 6px; } pre { padding: 0.8rem; overflow-x: auto; } code { padding: 0 0.25rem; }
+</style>
+</head>
+<body>
+<!-- The user's instruction for this tool. Keep it true: every change to inputs, outputs, options or limits
+     updates this page in the same iteration. Doctor lists the page until no TODO(project): marker is left. -->
+<h1>{{PROJECT_NAME}}</h1>
+<p class="lead">TODO(project): one sentence — what the tool does and for whom.</p>
+
+<h2>Install</h2>
+<p>TODO(project): what is needed (language version, dependencies) and the exact commands.</p>
+
+<h2>Run</h2>
+<pre>TODO(project): the command line, with every option explained below it</pre>
+
+<h2>Examples</h2>
+<p>TODO(project): two or three real runs — the input and the output the user will see. The smoke examples in
+<code>.devframework/project.json</code> prove the same runs on every <code>finish</code>.</p>
+
+<h2>When something goes wrong</h2>
+<p>TODO(project): the errors a user meets most often and what to do about each.</p>
+
+<h2>Limits</h2>
+<p>TODO(project): what the tool deliberately does not do, and known issues (details in docs/KNOWN_ERRORS.md).</p>
+</body>
+</html>

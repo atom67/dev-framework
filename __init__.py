@@ -61,20 +61,27 @@ def df_init(args: dict, **kwargs) -> str:
     target = _path(args.get("target", ""))
     name = (args.get("name") or target.name).strip()
     scale = (args.get("scale") or "").strip()
-    if not scale and not args.get("update"):
-        return "ERROR: scale is required (integer + unit, e.g. \"100 users\"); it is a product decision — ask the operator."
+    kind = args.get("kind") or ("" if args.get("update") else "product")
+    if kind == "product" and not scale and not args.get("update"):
+        return "ERROR: a product needs a scale (integer + unit, e.g. \"100 users\"); it is a product decision — ask the operator."
     profile = args.get("profile") or "generic"
     argv = [sys.executable, "-B", str(PACKAGE / "scripts" / "install.py"), "--target", str(target), "--name", name,
-            "--scale", scale, "--profile", profile, "--devlog" if args.get("devlog") else "--no-devlog"]
-    if args.get("update"):
+            "--kind", kind, "--profile", profile, "--devlog" if args.get("devlog") else "--no-devlog"]
+    argv += ["--scale", scale] if scale else []
+    if args.get("update"):  # with kind: promotion explore → tool → product (product also needs scale)
         argv = [sys.executable, "-B", str(PACKAGE / "scripts" / "install.py"), "--target", str(target), "--update"]
+        argv += (["--kind", kind] if kind else []) + (["--scale", scale] if scale else [])
     code, out = _run(argv, PACKAGE, 120)
     if code:
         return f"INIT FAILED (exit {code}):\n{_trim(out, 25)}"
     summary = [line for line in out.splitlines() if line.strip() and line[0] not in ' \t{}"'][-6:]  # skip the JSON plan
     return ("INIT OK: " + str(target) + "\n" + "\n".join(summary) +
-            "\nNext: fill PROJECT.md and docs/ARCHITECTURE.md (no TODO(project) left), set the test command in "
-            ".devframework/project.json, write docs/USE_CASES.md, then df_check doctor. Contract: df_nav contract."
+            "\nNext: " + {
+                "tool": "fill PROJECT.md, write docs/GUIDE.html and 1-3 `smoke` examples in .devframework/project.json",
+                "explore": "write the intent and open questions in PROJECT.md",
+            }.get(kind, "fill PROJECT.md and docs/ARCHITECTURE.md (no TODO(project) left), set the test command in "
+                        ".devframework/project.json, write docs/USE_CASES.md") +
+            ", then df_check doctor. Contract: df_nav contract."
             "\nReplies to the operator from now on: '🛠️ Tech' then '💬 Message' (plain language, ending with the ask); "
             "this replaces any profile footer — one Message, not two.")
 
@@ -140,9 +147,10 @@ SCHEMAS = {
             "properties": {
                 "target": {"type": "string", "description": "Repository directory (absolute path; D:/x, D:\\x or /d/x)."},
                 "name": {"type": "string", "description": "Product name as the operator calls it (defaults to the directory name)."},
-                "scale": {"type": "string", "description": "Scale target: integer + unit, e.g. '100 users' or '1 user (personal tool)'. A product decision — ask if unknown."},
+                "kind": {"type": "string", "enum": ["product", "tool", "explore"], "description": "What is being built — the operator's decision, ask: product (full documents + tests), tool (guide.html + smoke examples), explore (minimum; promote later with update+kind)."},
+                "scale": {"type": "string", "description": "Product only: integer + unit, e.g. '100 users'. A product decision — ask if unknown."},
                 "profile": {"type": "string", "enum": ["generic", "personal-desktop", "service"], "description": "Workflow profile (default generic)."},
-                "devlog": {"type": "boolean", "description": "Enable the optional verbatim devlog rule (default false)."},
+                "devlog": {"type": "boolean", "description": "Verbatim devlog of finished dialogues — ask the operator, never assume (default false; local-only in public repos)."},
                 "update": {"type": "boolean", "description": "Update an existing installation to this framework version instead of installing."},
             },
             "required": ["target"],
@@ -202,6 +210,7 @@ def _cli_setup(parser) -> None:
     init = sub.add_parser("init", help="install the framework into a repository")
     init.add_argument("target"); init.add_argument("--name"); init.add_argument("--scale")
     init.add_argument("--profile", default="generic"); init.add_argument("--devlog", action="store_true")
+    init.add_argument("--kind", choices=["product", "tool", "explore"])
     init.add_argument("--update", action="store_true")
     check = sub.add_parser("check", help="doctor | finish | commit-check | selftest | secrets")
     check.add_argument("target"); check.add_argument("mode", nargs="?", default="doctor"); check.add_argument("--verbose", action="store_true")
@@ -211,7 +220,7 @@ def _cli_setup(parser) -> None:
 
 def _cli_handler(args) -> int:
     if args.df_command == "init":
-        print(df_init({"target": args.target, "name": args.name, "scale": args.scale, "profile": args.profile,
+        print(df_init({"target": args.target, "name": args.name, "scale": args.scale, "profile": args.profile, "kind": args.kind,
                        "devlog": args.devlog, "update": args.update}))
     elif args.df_command == "check":
         print(df_check({"target": args.target, "mode": args.mode, "verbose": args.verbose}))

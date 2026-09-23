@@ -122,6 +122,8 @@ local storage, and Cursor has no known export. Record baselines in `evals/RESULT
 
 ## 7. Operator decisions
 
+**Decided 2026-09-23 by the operator: D1 = A, D2 = A, D3 = A, D4 = Codex → Cursor → OpenCode (all as recommended).**
+
 | # | Decision | Recommendation |
 |---|---|---|
 | D1 | `commands/` after the move to skills: keep as aliases, or delete | keep for one release as aliases, then delete; skills are the one format every host reads |

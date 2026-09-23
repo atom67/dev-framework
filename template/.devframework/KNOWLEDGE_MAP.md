@@ -47,7 +47,9 @@ implementation, not runtime coverage claims from Markdown.
 | K-019 | S02; S03 KE-2026-08-30-SECRETS-WORKING-TREE | [Verification](VERIFICATION.md) | Package tests: index/worktree mismatch, changed source, literal formats |
 | K-020 | S02, S05: planted defects/finish | [Verification](VERIFICATION.md) | Package tests: zero/skipped/missing/stale evidence and command failure |
 | K-021 | S02, S05: doc drift/backlog/handoff | [Protocol](../AGENTS.md) | Package link/ID checks; stack-specific drift checks; live handoff pilot |
+<!-- kind: product -->
 | K-022 | S03 KE-2026-08-26-CLEAN-OBJ; S05 artifacts | [Release](../docs/RELEASE.md) | No arbitrary intermediate pruning; final installable artifact, bounded retention |
+<!-- /kind -->
 | K-023 | S05: desktop vs service policy | [Profiles](profiles/generic.md) | Explicit workflow/outputs/authority; build is not deployment |
 | K-024 | S02, S05: catalogue ID ranges / dual-store slogan | [Protocol](../AGENTS.md), [Sync](patterns/sync-semantics.md) | Package doctor: SET Enables/Preconditions vs headings; Flow store naming is review, not this check |
 

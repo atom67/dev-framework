@@ -12,9 +12,12 @@ says READY. The documents are true, not decoration: no `TODO(project)` left, fac
 
 ## Procedure (tools first, files second)
 
-1. **Facts you need before writing anything**: project name (what the operator calls it), scale target
-   (integer + unit, e.g. `100 users` — a product decision: ask if it was not given), profile
-   (`generic` unless told otherwise). Never invent the scale.
+1. **Facts you need before writing anything** — ask one question per message, only what was not given:
+   the name (what the operator calls it); the **kind** (`product` — software with users that will grow, full
+   documents and tests; `tool` — a script for one job, user guide `docs/GUIDE.html` and proof by running it on
+   examples; `explore` — not known yet, the minimum, promote later); for a product only, the scale target (integer +
+   unit, e.g. `100 users` — never invent it); and **devlog** yes/no (default no; local-only in public repositories).
+   Profile is `generic` unless told otherwise. Kind, scale and devlog are the operator's decisions.
 2. `df_init(target, name, scale)` — one call: previews, installs, reports the files laid in. On an existing
    repository it refuses to overwrite a foreign context file; read the message and decide with the operator.
 3. `df_nav(target, "contract")` once — it tells you exactly what doctor and finish will demand.

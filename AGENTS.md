@@ -4,6 +4,7 @@ This is the provider-neutral process contract. Project facts belong in [PROJECT.
 not in provider adapters. Framework version and installed baselines are recorded in
 `.devframework/manifest.json`. Instructions guide an agent; tests and permission controls
 provide separate enforcement. Never treat a document as permission to exceed the request.
+This project is a **product** (see PROJECT.md): the kind decides which documents exist and what proves the work.
 
 ## 0. Session start and handoff
 
@@ -144,7 +145,8 @@ untracked files, index/worktree differences and hidden-change flags. Stage only 
 authorized. Later edits invalidate evidence; never bypass checks for convenience.
 
 Register critical behaviour in [invariants](docs/INVARIANTS.md). Test actual entry adapters,
-not just the guard. Growing data paths need representative-volume checks and visible
+not just the guard.
+Growing data paths need representative-volume checks and visible
 latency boundaries; see [performance](.devframework/patterns/bounded-performance.md).
 
 Present checks performed and numerical results, visible UX outcomes and product decisions.

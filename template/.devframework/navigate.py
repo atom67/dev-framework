@@ -137,6 +137,11 @@ def brief(root: Path) -> str:
     out = []
     title = next((line[2:] for line in read(root, "PROJECT.md").splitlines() if line.startswith("# ")), root.name)
     out.append(f"# {title} — session brief ({date.today().isoformat()})")
+    try:
+        from verification import installed_kind
+        out.append(f"kind: {installed_kind(root)} (product / tool / explore — decides the documents and the proof)")
+    except Exception:  # an older verification.py next to this file: the brief still works without the line
+        pass
     out.append(doctor_line(root))
     try:
         import hostcheck
@@ -216,6 +221,10 @@ def index(root: Path) -> Path:
 
 CONTRACT = """\
 DEV Framework contract (what the gates check). Details: .devframework/VERIFICATION.md; rules: AGENTS.md.
+kind    = product | tool | explore, recorded at install (brief shows it). Below is the product contract.
+          tool: PROJECT.md + docs/GUIDE.html without `TODO(project):`, 1-3 `smoke` examples in project.json run by
+          run_smoke.py as the test; no use-case catalogue. explore: PROJECT.md intent; tests optional, finish then
+          says behaviour is unproven. Promote with install.py --update --kind tool|product (product: --scale).
 doctor  = structure + configuration. READY needs: every framework file present; PROJECT.md and docs/ARCHITECTURE.md
           without `TODO(project):`; .devframework/project.json with a reviewed `test` argv (build may be null with a
           `build_not_applicable` text); docs/USE_CASES.md with >= 1 `#### UC-### — title` heading, each with a

@@ -61,14 +61,18 @@ def finish(root: Path, *, commit: bool = False, verbose: bool = False) -> int:
         return 1
     if commit and show_secrets(root):
         return 1
-    config, _, _ = load_config(root)
+    kind = report.get("kind", "product")
+    config, _, _ = load_config(root, kind)
     commands = config["commands"]
     steps = []
     if commands.get("build") is not None:
         steps.append(("build", commands["build"]))
     else:
         print("BUILD NOT APPLICABLE: documented in project.json")
-    steps.append(("test", commands["test"]))
+    if commands.get("test") is not None:
+        steps.append(("test", commands["test"]))
+    else:  # only an exploration may reach here: load_config demands a test command from every other kind
+        print("NO TEST COMMAND (explore): structure and secrets checked; behaviour is NOT proven")
     steps.extend((f"check-{number}", cmd) for number, cmd in enumerate(commands["checks"], 1))
     if any("{python}" in command for _, command in steps):
         print(f"{{python}} = {sys.executable} (Python {sys.version.split()[0]})")
@@ -107,7 +111,8 @@ def finish(root: Path, *, commit: bool = False, verbose: bool = False) -> int:
             raise ValueError("Source changed during verification; rerun on a stable snapshot")
     if commit and require_index_parity(root) != index:
         raise ValueError("Index changed during verification")
-    print(f"TEST EVIDENCE: {counts['total']} total, {counts['skipped']} skipped, 0 failures/errors")
+    if counts is not None:
+        print(f"TEST EVIDENCE: {counts['total']} total, {counts['skipped']} skipped, 0 failures/errors")
     print(f"SOURCE SHA256: {identity(before)} (tracked + nonignored untracked; ignored inputs NOT covered)")
     print(f"{'COMMIT CHECK' if commit else 'FINISH'} PASSED: {len(steps)} configured commands. "
           f"{'Index/worktree parity verified.' if commit else 'WORKTREE ONLY; commit content NOT certified.'} "
@@ -137,6 +142,9 @@ def selftest(root: Path) -> int:
             subprocess.run(["git", "-C", str(copy), *args], capture_output=True, timeout=60, check=True)
         baseline = len(doctor(copy)["errors"])
         catalogue = copy / "docs" / "USE_CASES.md"
+        if not catalogue.exists():  # a tool or an exploration has no use-case catalogue to break
+            catalogue.parent.mkdir(parents=True, exist_ok=True)
+            catalogue.write_bytes(b"")
         original = catalogue.read_bytes()
         catalogue.write_bytes(original + "\n#### UC-999 — planted case without a Test field\n- **Trigger:** planted by selftest\n".encode("utf-8"))
         caught = len(doctor(copy)["errors"]) > baseline
