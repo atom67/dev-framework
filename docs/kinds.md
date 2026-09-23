@@ -37,6 +37,13 @@ Recording them here is what stops them being rediscovered as bugs.
 
 ## Handoff — update at every portion boundary and provider switch
 
+### 2026-09-23 (written by navigate.py handoff)
+- Branch/commit: main @ 592a59c; uncommitted: 1 file(s)
+- Open items: 0 — programme finished
+- doctor: READY (structure/configuration; tests not run — run `check.py finish`)
+- Note: v1.3.0 released 2026-09-23 (592a59c, tag dev-framework--v1.3.0), CI green 4/4. Kinds product/tool/explore, run_smoke.py, GUIDE.html, promotion, init asks name→kind→scale→devlog. Next: owner's live test of a tool install; then hosts phase 0.
+
+
 - Branch/base commit and task-owned uncommitted changes:
 - Current portion and next concrete step (the live checklist is copied at the end of
   every operator reply; do not maintain a second list here):
@@ -59,4 +66,4 @@ if access is unavailable, record the unverified behaviour and risk in Handoff ab
 - [x] templates: kind blocks in AGENTS.md, PROJECT.md, KNOWLEDGE_MAP, entry-point pattern; docs/GUIDE.html; run_smoke.py; project.json per kind
 - [x] check.py: finish without a test command for explore (says nothing is proven); selftest per kind; navigate brief/contract show the kind
 - [x] init questions one by one: name → kind → scale (product only) → devlog; commands/init.md, df-import skill, Hermes df_init
-- [ ] tests: one comprehensive test per kind + promotion + old manifest; README section; v1.3.0; gate once; push; CI green
+- [x] tests: one comprehensive test per kind + promotion + old manifest; README section; v1.3.0; gate once; push; CI green

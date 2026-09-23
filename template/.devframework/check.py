@@ -172,13 +172,17 @@ def devlog_entry(root: Path, args) -> int:
         if not sha or not summary:
             raise ValueError("--commit expects <sha>=<summary of at most three sentences>")
         commits.append((sha.strip(), summary.strip()))
-    path = devlog_mod.new_entry(root, day, args.agent, args.codes.split(","), commits)
+    from verification import installed_kind
+    codes = args.codes.split(",") if args.codes else [installed_kind(root).upper()]  # a tool has no FR/UC ids
+    path = devlog_mod.new_entry(root, day, args.agent, codes, commits)
     local_only, reason = devlog_mod.keep_local(root)
     print(f"DEVLOG CREATED: {path.relative_to(root).as_posix()} ({reason}); paste the dialogue under '## Dialogue (verbatim)'")
     return 0
 
 
 def main() -> int:
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+    sys.stderr.reconfigure(encoding="utf-8", errors="replace")
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--root", type=Path, default=Path(__file__).resolve().parent.parent)
     sub = parser.add_subparsers(dest="command", required=True)
@@ -194,7 +198,7 @@ def main() -> int:
     log = sub.add_parser("devlog", help="create a devlog skeleton (optional rule, see DEVLOG.md)")
     log.add_argument("--agent", action="append", required=True, metavar="CLIENT-MODEL",
                      help="who drove the dialogue, e.g. claudecode-OPUS5; repeat once for the second model when models switched")
-    log.add_argument("--codes", required=True, help="comma-separated FR/UC/KE codes the dialogue touched")
+    log.add_argument("--codes", help="comma-separated FR/UC/KE codes the dialogue touched; default: the kind (TOOL, EXPLORE)")
     log.add_argument("--date", help="dialogue date YYYY-MM-DD (default today)")
     log.add_argument("--from-git", type=int, default=0, metavar="N", help="take the last N commits from git log")
     log.add_argument("--commit", action="append", metavar="SHA=SUMMARY", help="explicit commit row (repeatable)")

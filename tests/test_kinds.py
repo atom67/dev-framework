@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import re
 
 from common import WorkspaceTest
 import install
@@ -28,6 +29,9 @@ class KindTests(WorkspaceTest):
         agents = (self.target / "AGENTS.md").read_text(encoding="utf-8")
         self.assertIn("docs/GUIDE.html", agents)
         self.assertNotIn("docs/USE_CASES.md", agents)
+        guide = (self.target / "docs/GUIDE.html").read_text(encoding="utf-8")
+        comments = "".join(re.findall(r"(?s)<!--.*?-->", guide))
+        self.assertNotIn("TODO(project):", comments, "a marker inside a comment can never be filled in")
         doctor = self.checker("doctor").stdout
         self.assertIn("GUIDE.html", doctor)
         self.assertIn("smoke", doctor)
@@ -38,18 +42,29 @@ class KindTests(WorkspaceTest):
         run = self.checker("finish")
         self.assertEqual(run.returncode, 0, run.stdout + run.stderr)
         self.assertIn("1 total, 0 skipped", run.stdout)
+        contract = self.nav_contract()
+        self.assertIn("for a TOOL", contract)
+        self.assertNotIn("USE_CASES", contract)
         self.project_json(smoke=[{"name": "doubles", "run": ["{python}", "tool.py", "21"], "expect_contains": "43"}])
         self.assertEqual(self.checker("finish").returncode, 1, "a wrong example must fail the gate")
 
+    def nav_contract(self):
+        import subprocess, sys
+        return subprocess.run([sys.executable, "-B", str(self.target / ".devframework/navigate.py"), "contract"],
+                              cwd=self.target, capture_output=True, text=True, encoding="utf-8", timeout=60).stdout
+
     def test_explore_needs_no_tests_and_says_so(self):
         self.git_init()
-        self.init(kind="explore")
+        self.init(kind="explore", devlog=True)
         self.assertFalse((self.target / "docs/GUIDE.html").exists())
         self.assertFalse((self.target / "docs/USE_CASES.md").exists())
         self.fill("PROJECT.md")
         run = self.checker("finish")
         self.assertEqual(run.returncode, 0, run.stdout + run.stderr)
         self.assertIn("behaviour is NOT proven", run.stdout)
+        log = self.checker("devlog", "--agent", "claudecode-OPUS5")  # no FR/UC ids exist here: the kind stands in
+        self.assertEqual(log.returncode, 0, log.stdout + log.stderr)
+        self.assertIn("_EXPLORE.md", log.stdout)
 
     def test_promotion_adds_documents_keeps_project_facts_and_never_goes_back(self):
         self.init(kind="explore")

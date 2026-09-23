@@ -151,11 +151,15 @@ def report(root: Path) -> tuple[list[str], list[str]]:
 
 
 def main() -> int:
-    root = Path(sys.argv[1]).resolve() if len(sys.argv) > 1 else Path(__file__).resolve().parent.parent
+    paths = [a for a in sys.argv[1:] if not a.startswith("--")]
+    root = Path(paths[0]).resolve() if paths else Path(__file__).resolve().parent.parent
     sys.stdout.reconfigure(encoding="utf-8")
     files = host_files(root)
-    print("host files scanned: " + (", ".join(str(p) for p in files) or "none found"))
     unresolved, resolved = report(root)
+    if unresolved or "--verbose" in sys.argv:
+        print("host files scanned: " + (", ".join(str(p) for p in files) or "none found"))
+    else:
+        print(f"host files scanned: {len(files)} (names with --verbose)")
     for line in resolved:
         print("RESOLVED " + line)
     for line in unresolved:

@@ -20,7 +20,7 @@ from datetime import date
 from pathlib import Path
 
 DEFAULT_DIR = "docs/devlog"
-CODE_RE = re.compile(r"^(FR|NFR|UC|SET|KE|INV)-[A-Za-z0-9-]+$")
+CODE_RE = re.compile(r"^((FR|NFR|UC|SET|KE|INV)-[A-Za-z0-9-]+|PRODUCT|TOOL|EXPLORE)$")  # a kind stands in when no ids exist
 AGENT_RE = re.compile(r"^[a-z0-9]+-[A-Za-z0-9.]+$")   # <client>-<MODEL>, e.g. claudecode-OPUS5
 MAX_SUMMARY_SENTENCES = 3
 MAX_AGENTS = 2                                        # the two models with the largest share of the dialogue

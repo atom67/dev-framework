@@ -221,10 +221,7 @@ def index(root: Path) -> Path:
 
 CONTRACT = """\
 DEV Framework contract (what the gates check). Details: .devframework/VERIFICATION.md; rules: AGENTS.md.
-kind    = product | tool | explore, recorded at install (brief shows it). Below is the product contract.
-          tool: PROJECT.md + docs/GUIDE.html without `TODO(project):`, 1-3 `smoke` examples in project.json run by
-          run_smoke.py as the test; no use-case catalogue. explore: PROJECT.md intent; tests optional, finish then
-          says behaviour is unproven. Promote with install.py --update --kind tool|product (product: --scale).
+kind    = product (this contract). A tool or an exploration prints its own; promote with --update --kind.
 doctor  = structure + configuration. READY needs: every framework file present; PROJECT.md and docs/ARCHITECTURE.md
           without `TODO(project):`; .devframework/project.json with a reviewed `test` argv (build may be null with a
           `build_not_applicable` text); docs/USE_CASES.md with >= 1 `#### UC-### — title` heading, each with a
@@ -318,6 +315,27 @@ def handoff(root: Path, slug: str, note: str) -> str:
     return "\n".join(block)
 
 
+KIND_CONTRACT = {
+    "tool": """\
+DEV Framework contract for a TOOL (what the gates check). Rules: AGENTS.md.
+doctor  = structure + configuration. READY needs: PROJECT.md and docs/GUIDE.html without `TODO(project):`
+          (the guide is the user's instruction: install, run, examples, errors, limits); 1-3 `smoke` examples in
+          .devframework/project.json: {"name", "run": [argv, "{python}" allowed], "stdin"?, "expect_stdout": file |
+          "expect_contains": text, "expect_exit"?}. No use cases, backlog or regression plan.
+finish  = doctor + secret heuristic + run_smoke.py (the tool run on every example = the counted evidence); needs git.
+          A wrong example fails the gate. Prints TEST EVIDENCE, SOURCE SHA256, FINISH PASSED.
+commit-check = finish + index/worktree parity + staged-blob secret scan. Only before an authorized commit.
+Grow into a product: install.py --update --kind product --scale "<target>" (adds documents, overwrites none).""",
+    "explore": """\
+DEV Framework contract for an EXPLORATION (what the gates check). Rules: AGENTS.md.
+doctor  = structure + configuration. READY needs: PROJECT.md without `TODO(project):` (intent, open questions).
+finish  = doctor + secret heuristic + tests if a test command is configured; without one it passes and says
+          plainly that behaviour is NOT proven. Record what you learn, dated, under "What we learned".
+commit-check = finish + index/worktree parity + staged-blob secret scan. Only before an authorized commit.
+Grow: install.py --update --kind tool, or --kind product --scale "<target>" (adds documents, overwrites none).""",
+}
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--root", type=Path, default=HERE.parent)
@@ -340,7 +358,8 @@ def main() -> int:
         elif args.command == "index":
             print(f"INDEX written: {index(root).relative_to(root).as_posix()}")
         elif args.command == "contract":
-            print(CONTRACT)
+            from verification import installed_kind
+            print(KIND_CONTRACT.get(installed_kind(root), CONTRACT))
         elif args.command == "checklist":
             print(checklist(root, args.action, args.slug, args.text))
         elif args.command == "handoff":
