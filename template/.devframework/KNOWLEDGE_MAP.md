@@ -45,7 +45,7 @@ implementation, not runtime coverage claims from Markdown.
 | K-017 | S04 order/conflicts; S03 KE-2026-08-30-APP-LIMIT-STALE-DAY | [Sync semantics](patterns/sync-semantics.md) | Timezone/day boundaries, replay and atomic apply/cursor |
 | K-018 | S03 KE-2026-08-15-MSG-TRUNC | [Sync semantics](patterns/sync-semantics.md) | Long record round-trip; UI excerpt never truncates storage |
 | K-019 | S02; S03 KE-2026-08-30-SECRETS-WORKING-TREE | [Verification](VERIFICATION.md) | Package tests: index/worktree mismatch, changed source, literal formats |
-| K-020 | S02, S05: planted defects/finish | [Verification](VERIFICATION.md) | Package tests: zero/skipped/missing/stale evidence and command failure |
+| K-020 | S02, S05: planted defects/finish | [Verification](VERIFICATION.md) | Package tests: zero/skipped/missing counts and command failure |
 | K-021 | S02, S05: doc drift/backlog/handoff | [Protocol](../AGENTS.md) | Package link/ID checks; stack-specific drift checks; live handoff pilot |
 <!-- kind: product -->
 | K-022 | S03 KE-2026-08-26-CLEAN-OBJ; S05 artifacts | [Release](../docs/RELEASE.md) | No arbitrary intermediate pruning; final installable artifact, bounded retention |

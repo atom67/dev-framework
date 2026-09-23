@@ -13,12 +13,12 @@ import uuid
 PACKAGE = Path(__file__).resolve().parents[1]
 sys.dont_write_bytecode = True
 sys.path.insert(0, str(PACKAGE / "template" / ".devframework"))
-from safety import atomic_write, checked_path, child, digest, disjoint, project_lock
-from verification import KIND_EXCLUDES, KINDS, required
+from safety import atomic_write, checked_path, child, digest, disjoint
+from verification import ADVANCED_FROM, KIND_EXCLUDES, KINDS, required
 
 MANIFEST = ".devframework/manifest.json"
-PENDING = ".devframework/pending.json"
 PROFILES = ("generic", "personal-desktop", "service")
+TESTING = ("lean", "advanced")
 KIND_RANK = {"explore": 0, "tool": 1, "product": 2}  # a project grows up, never down: documents are never removed
 KIND_BLOCK = re.compile(r"<!-- kind: ([a-z, ]+) -->\n?(.*?)<!-- /kind -->\n?", re.S)
 
@@ -68,6 +68,11 @@ def select_kind(text: str, kind: str) -> str:
     return KIND_BLOCK.sub(lambda m: m[2] if kind in [k.strip() for k in m[1].split(",")] else "", text)
 
 
+def recommended_testing(kind: str, count: int) -> str:
+    """Lean for explorations, tools and small products; advanced for a product at tens of thousands of users."""
+    return "advanced" if kind == "product" and count >= ADVANCED_FROM else "lean"
+
+
 def render(source: Path, params: dict) -> dict[str, bytes]:
     count, kind = params["count"], params.get("kind", "product")
     replacements = {
@@ -86,6 +91,8 @@ def render(source: Path, params: dict) -> dict[str, bytes]:
             continue
         if item.relative_to(template).as_posix() in KIND_EXCLUDES[kind]:
             continue
+        if item.name == ".hermes.md" and not params.get("hermes"):
+            continue  # Hermes' context file; other hosts would only read noise
         text = select_kind(item.read_text(encoding="utf-8"), kind)
         for key, value in replacements.items():
             text = text.replace("{{" + key + "}}", value)
@@ -101,6 +108,7 @@ def render(source: Path, params: dict) -> dict[str, bytes]:
         "commands": {"build": None, "test": test, "checks": []},
         "build_not_applicable": {"product": None, "tool": "A script run directly; change this if the tool is compiled or packaged",
                                  "explore": "Exploring: nothing is built yet"}[kind],
+        "testing": params.get("testing") or recommended_testing(kind, count),
         "test_evidence": {"format": "devframework-v1", "max_skipped": 0},
         "devlog": {"enabled": bool(params.get("devlog", False)), "dir": "docs/devlog", "commit": False},
     }
@@ -130,6 +138,8 @@ def load_manifest(target: Path) -> dict | None:
     if not isinstance(p, dict):
         raise ValueError("Invalid manifest parameters")
     validated = parameters(p.get("name", ""), f"{p.get('count')} {p.get('unit')}", p.get("profile"), p.get("kind", "product"))
+    if type(p.get("hermes", False)) is bool and "hermes" in p:  # manifests before 1.5.0 have no hermes flag
+        validated["hermes"] = p["hermes"]
     if validated != {**p, "kind": p.get("kind", "product")}:  # manifests before 1.3.0 have no kind: product
         raise ValueError("Invalid manifest parameters")
     return value
@@ -161,98 +171,37 @@ def make_plan(target: Path, files: dict[str, bytes], previous: dict | None, forc
     return plan
 
 
-def restore_pending(target: Path) -> None:
-    pending_path = child(target, PENDING)
-    if not pending_path.exists():
-        raise ValueError("No interrupted installation to recover")
-    marker = read_json(pending_path)
-    relative = marker.get("backup", "")
-    if not re.fullmatch(r"\.devframework/backups/[0-9TZ-]+-[0-9a-f]{32}", relative):
-        raise ValueError("Invalid recovery backup location")
-    backup = child(target, relative)
-    journal = read_json(child(backup, "journal.json"))
-    entries = journal.get("files")
-    if journal.get("format") != 1 or not isinstance(entries, list) or not entries:
-        raise ValueError("Invalid recovery journal")
-    prepared = []
-    names = set()
-    for entry in entries:
-        name = entry["path"]
-        lowered = name.lower()
-        if lowered in names or lowered in (PENDING, ".devframework/install.lock") or lowered.startswith(".devframework/backups/"):
-            raise ValueError("Invalid recovery target")
-        names.add(lowered)
-        path = child(target, name)
-        old_hash, new_hash = entry["old_sha256"], entry["new_sha256"]
-        if not isinstance(new_hash, str) or not re.fullmatch(r"[0-9a-f]{64}", new_hash):
-            raise ValueError("Invalid recovery hash")
-        if old_hash is not None and (not isinstance(old_hash, str) or not re.fullmatch(r"[0-9a-f]{64}", old_hash)):
-            raise ValueError("Invalid recovery hash")
-        saved = child(backup, "files/" + name).read_bytes() if old_hash else None
-        if old_hash and digest(saved) != old_hash:
-            raise ValueError(f"Backup content changed: {name}")
-        current = path.read_bytes() if path.exists() else None
-        if (digest(current) if current is not None else None) not in (old_hash, new_hash):
-            raise ValueError(f"Recovery would overwrite a later edit: {name}")
-        prepared.append((path, saved))
-    for path, saved in reversed(prepared):
-        if saved is None:
-            if path.exists():
-                checked_path(path).unlink()
-        else:
-            atomic_write(path, saved)
-    pending_path.unlink()
-
-
 def apply_plan(target: Path, plan: list[dict], manifest: dict) -> str | None:
+    """Write the plan; every replaced file is copied to one ignored backup first. The manifest is written last,
+    so an interrupted run is simply repeated (the plan sees what was already written)."""
     changes = [p for p in plan if p["action"] in ("create", "update", "replace-with-backup")]
-    current_manifest = child(target, MANIFEST)
-    old_manifest = current_manifest.read_bytes() if current_manifest.exists() else None
     new_manifest = json_bytes(manifest)
-    if old_manifest == new_manifest and not changes:
+    manifest_path = child(target, MANIFEST)
+    if not changes and manifest_path.exists() and manifest_path.read_bytes() == new_manifest:
         return None
-    changes.append({"path": MANIFEST, "old": old_manifest, "new": new_manifest})
-    stamp = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H-%M-%SZ") + "-" + uuid.uuid4().hex
-    backup_name = ".devframework/backups/" + stamp
-    backup = child(target, backup_name)
-    # Each backup ignores its own contents, including recovery data, even during first init.
-    atomic_write(child(backup, ".gitignore"), b"*\n")
-    journal = []
+    backup_name = None
+    replaced = [p for p in changes if p["old"] is not None]
+    if replaced:
+        stamp = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H-%M-%SZ") + "-" + uuid.uuid4().hex[:8]
+        backup_name = ".devframework/backups/" + stamp
+        atomic_write(child(target, backup_name + "/.gitignore"), b"*\n")  # a backup never reaches git
+        for item in replaced:
+            atomic_write(child(target, f"{backup_name}/files/{item['path']}"), item["old"])
     for item in changes:
         path = child(target, item["path"])
-        current = path.read_bytes() if path.exists() else None
-        if current != item["old"]:
-            raise ValueError(f"File changed after preview: {item['path']}")
-        if current is not None:
-            atomic_write(child(backup, "files/" + item["path"]), current)
-        journal.append({"path": item["path"], "old_sha256": digest(current) if current is not None else None,
-                        "new_sha256": digest(item["new"])})
-    atomic_write(child(backup, "journal.json"), json_bytes({"format": 1, "files": journal}))
-    atomic_write(child(target, PENDING), json_bytes({"backup": backup_name}))
-    try:
-        for item in changes:
-            path = child(target, item["path"])
-            current = path.read_bytes() if path.exists() else None
-            if current != item["old"]:
-                raise ValueError(f"File changed during install: {item['path']}")
-            atomic_write(path, item["new"])
-            if item["path"].endswith(".sh") and os.name != "nt":
-                os.chmod(path, 0o755)  # scripts/run_tests.sh must be runnable as `scripts/run_tests.sh`
-    except BaseException:
-        # If recovery itself fails, keep marker/backups and require explicit --recover.
-        restore_pending(target)
-        raise
-    child(target, PENDING).unlink()
+        atomic_write(path, item["new"])
+        if item["path"].endswith(".sh") and os.name != "nt":
+            os.chmod(path, 0o755)  # scripts/run_tests.sh must be runnable as `scripts/run_tests.sh`
+    atomic_write(manifest_path, new_manifest)
     return backup_name
 
 
 def install(target: Path, *, source: Path = PACKAGE, name: str | None = None,
             scale: str | None = None, profile: str | None = None, kind: str | None = None, update: bool = False,
-            force: bool = False, dry_run: bool = False, devlog: bool = False) -> dict:
+            force: bool = False, dry_run: bool = False, devlog: bool = False, hermes: bool = False,
+            testing: str | None = None) -> dict:
     source, target = checked_path(source), checked_path(target)
     disjoint(source, target)
-    if child(target, PENDING).exists():
-        raise ValueError("Interrupted installation: review backups and run --recover first")
     previous = load_manifest(target)
     if update and previous is None:
         raise ValueError("No manifest; use init/adoption for a legacy project, not update")
@@ -264,6 +213,8 @@ def install(target: Path, *, source: Path = PACKAGE, name: str | None = None,
     params = parameters(name or old.get("name", ""),
                         scale or (f"{old['count']} {old['unit']}" if previous else default_scale),
                         profile or old.get("profile", "generic"), kind)
+    # Hosts are only added: a project that has .hermes.md (every install before 1.5.0) keeps it and its updates.
+    params["hermes"] = bool(hermes or old.get("hermes", previous is not None and ".hermes.md" in previous["files"]))
     if previous:
         promoting = KIND_RANK[kind] - KIND_RANK[old["kind"]]
         if promoting < 0:
@@ -278,7 +229,9 @@ def install(target: Path, *, source: Path = PACKAGE, name: str | None = None,
         raise ValueError("Package VERSION must be numeric major.minor.patch")
     if previous and tuple(map(int, version.split("."))) < tuple(map(int, previous["version"].split("."))):
         raise ValueError("Downgrade is not an update; restore reviewed backups instead")
-    files = render(source, {**params, "devlog": devlog})
+    if testing not in (None, *TESTING):
+        raise ValueError("Testing must be lean or advanced")
+    files = render(source, {**params, "devlog": devlog, "testing": testing})
     plan = make_plan(target, files, previous, force)
     conflicts = [p["path"] for p in plan if p["action"] == "conflict"]
     manifest = {"format": 1, "version": version, "parameters": params, "files": {}}
@@ -292,10 +245,7 @@ def install(target: Path, *, source: Path = PACKAGE, name: str | None = None,
             }
     backup = None
     if not dry_run and not conflicts:
-        with project_lock(target):
-            if load_manifest(target) != previous or child(target, PENDING).exists():
-                raise ValueError("Installation changed during planning; inspect and retry")
-            backup = apply_plan(target, plan, manifest)
+        backup = apply_plan(target, plan, manifest)
         if devlog and not previous:
             # Devlog is personal working material: for public/unknown repositories the
             # directory is git-ignored from the first minute (see .devframework/DEVLOG.md).
@@ -318,31 +268,29 @@ def main() -> int:
     parser.add_argument("--update", action="store_true")
     parser.add_argument("--force", action="store_true", help="replace conflicted framework files WITH backup; never project documents")
     parser.add_argument("--dry-run", action="store_true", help="preview without creating or writing anything")
-    parser.add_argument("--recover", action="store_true", help="roll back an interrupted transaction; never overwrite later edits")
+    parser.add_argument("--testing", choices=TESTING, help="lean (default below 10,000 users) or advanced; "
+                        "seeds `testing` in project.json on a new install")
+    parser.add_argument("--hermes", action="store_true", help="also install .hermes.md (the Hermes context file)")
     log = parser.add_mutually_exclusive_group()
     log.add_argument("--devlog", action="store_true", help="enable the optional Devlog rule without asking")
     log.add_argument("--no-devlog", action="store_true", help="disable the optional Devlog rule without asking")
     args = parser.parse_args()
     try:
-        if args.recover:
-            if args.dry_run or args.update or args.force or args.name or args.scale or args.profile or args.kind:
-                raise ValueError("--recover cannot be combined with install/update options")
-            target = checked_path(args.target)
-            disjoint(checked_path(PACKAGE), target)
-            if not child(target, PENDING).exists():
-                raise ValueError("No interrupted installation to recover")
-            with project_lock(target):
-                restore_pending(target)
-            print("Interrupted installation rolled back; backups retained.")
-            return 0
         devlog_on = True if args.devlog else False if (args.no_devlog or args.update or args.dry_run) else ask_devlog()
         result = install(args.target, name=args.name, scale=args.scale, profile=args.profile, kind=args.kind, devlog=devlog_on,
-                         update=args.update, force=args.force, dry_run=args.dry_run)
+                         update=args.update, force=args.force, dry_run=args.dry_run, hermes=args.hermes,
+                         testing=args.testing)
         print(json.dumps(result, ensure_ascii=False, indent=2))
         if result["conflicts"]:
             print("CONFLICT: nothing installed. Reconcile existing instructions or preview --force; replacements are backed up.")
             return 2
-        print("PREVIEW ONLY" if args.dry_run else "Installed. Run doctor: scaffold is NOT a configured/verified project.")
+        changed = sum(f["action"] in ("create", "update", "replace-with-backup") for f in result["files"])
+        if args.dry_run:
+            print("PREVIEW ONLY")
+        elif args.update:
+            print(f"Updated: {changed} framework file(s) written; project documents untouched. Run doctor.")
+        else:
+            print("Installed. Run doctor: scaffold is NOT a configured/verified project.")
         return 0
     except (OSError, ValueError, KeyError, TypeError) as error:
         print(f"ERROR: {error}", file=sys.stderr)

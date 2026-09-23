@@ -15,27 +15,27 @@ guard). Composition rules for *consumer* catalogues are in
 
 | ID | Setting | Where configured | Required / optional | Enables |
 |---|---|---|---|---|
-| SET-001 | Python 3.10+ on PATH | operator machine | required | UC-001, UC-002, UC-003, UC-004, UC-005, UC-006, UC-007, UC-009 |
+| SET-001 | Python 3.10+ on PATH | operator machine | required | UC-001, UC-002, UC-003, UC-005, UC-006, UC-007, UC-009 |
 | SET-002 | Git | operator machine | required for finish/commit-check and package verify | UC-006, UC-007, UC-009 |
-| SET-003 | Target directory disjoint from this package | install `-Target` | required | UC-001, UC-002, UC-003, UC-004 |
+| SET-003 | Target directory disjoint from this package | install `-Target` | required | UC-001, UC-002, UC-003 |
 
 ---
 
 ## Modules
 
-### Module: Install and recover
+### Module: Install and update
 
 **Value:** a new or existing project receives the process without silent clobber or a half-applied update.
-**Components:** `scripts/install.py`, `install.ps1`, `template/.devframework/safety.py`.
+**Components:** `scripts/install.py`, `template/.devframework/safety.py`.
 
 #### UC-001 — Preview an install or update
 
-- **Trigger:** Interactive — `install.ps1 -DryRun` or `python scripts/install.py --dry-run`.
+- **Trigger:** Interactive — `python scripts/install.py --dry-run`.
 - **Actor:** operator or implementing agent.
 - **Preconditions:** SET-001, SET-003.
 - **Flow:** the plan is printed; no target directory or files are created.
 - **Outcome:** the operator sees creates/preserves/conflicts before any write.
-- **Test:** covered — `tests/test_install.py`, `tests/test_package.py` preview cases.
+- **Test:** covered — `tests/test_install.py`.
 
 #### UC-002 — Seed a project
 
@@ -46,7 +46,7 @@ guard). Composition rules for *consumer* catalogues are in
   Git is not initialized; no commit, push, build or app launch.
 - **Outcome:** the target has AGENTS, PROJECT, docs (including the use-case catalogue and
   copy templates) and `.devframework` checks.
-- **Test:** covered — install tests; doctor on a fresh scaffold.
+- **Test:** covered — `tests/test_install.py`.
 
 #### UC-003 — Update without overwriting project documents
 
@@ -56,22 +56,12 @@ guard). Composition rules for *consumer* catalogues are in
 - **Flow:** untouched framework files update; edited framework files conflict and stop the
   whole update; `docs/*`, PROJECT.md and project.json are preserved.
 - **Outcome:** later template improvements do not silently rewrite the project's catalogue.
-- **Test:** covered — `tests/test_install.py` preserve-project.
-
-#### UC-004 — Recover an interrupted install
-
-- **Trigger:** Interactive — install `-Recover`.
-- **Actor:** installer.
-- **Preconditions:** SET-001, SET-003; a pending journal.
-- **Flow:** hashes in the journal are checked; matching backups restore; a later user edit
-  blocks recovery rather than being overwritten.
-- **Outcome:** a crash mid-write is recoverable without inventing file contents.
-- **Test:** covered — interruption and later-edit refusal tests.
+- **Test:** covered — `tests/test_install.py`.
 
 ### Module: Verification
 
 **Value:** scaffolding is not mistaken for a tested product, and a green result names what was actually checked.
-**Components:** `check.py`, `verification.py`, `test_evidence.py`, `scripts/verify.py`.
+**Components:** `check.py`, `verification.py`, `run_unittest.py`, `scripts/verify.py`.
 
 #### UC-005 — Doctor: scaffold vs ready
 
@@ -81,28 +71,27 @@ guard). Composition rules for *consumer* catalogues are in
 - **Flow:** required files, links, requirement IDs and the use-case catalogue contract are
   checked; missing facts keep the project NOT READY.
 - **Outcome:** a fresh install cannot be presented as a verified application.
-- **Test:** covered — `tests/test_checks.py`.
+- **Test:** covered — `tests/test_gates.py`.
 
 #### UC-006 — Finish with counted tests
 
 - **Trigger:** Interactive — `python .devframework/check.py finish` after implementation.
 - **Actor:** finish runner.
 - **Preconditions:** SET-001, SET-002; configured project.json commands.
-- **Flow:** reviewed argv commands run; fresh counted evidence is required; source must not
-  change during the run; a digest of the verified tree is printed.
-- **Outcome:** "done" means tests ran on this snapshot, not that a future commit is clean.
-- **Test:** covered — `tests/test_evidence_scope.py`.
+- **Flow:** reviewed argv commands run; the test command reports `TESTS: total=N failed=F skipped=S`;
+  more than zero must run and none may fail.
+- **Outcome:** "done" means tests ran and passed, not merely that a command exited 0.
+- **Test:** covered — `tests/test_gates.py`.
 
-#### UC-007 — Commit-check reads the index
+#### UC-007 — Commit-check scans what would be committed
 
 - **Trigger:** Interactive — `python .devframework/check.py commit-check` before an
   authorized commit.
 - **Actor:** commit-check.
 - **Preconditions:** SET-001, SET-002.
-- **Flow:** nonignored untracked files, index/worktree mismatch and hidden-change flags
-  fail; secret scan reads index blobs and redacts values.
-- **Outcome:** a staged defect cannot hide behind a clean working file.
-- **Test:** covered — `tests/test_checks.py`, `tests/test_evidence_scope.py`.
+- **Flow:** finish, plus the secret scan of the staged blobs; values are redacted.
+- **Outcome:** a staged secret cannot hide behind a clean working file.
+- **Test:** covered — `tests/test_gates.py`.
 
 ### Module: Consumer value catalogue
 
@@ -119,7 +108,7 @@ guard). Composition rules for *consumer* catalogues are in
   and Preconditions name existing IDs; doctor expands ranges and requires a Test field and
   a traceability row.
 - **Outcome:** unwritten IDs and untested-but-testable paths are visible, not implied.
-- **Test:** covered — `test_use_case_*` in `tests/test_checks.py`.
+- **Test:** covered — `tests/test_gates.py`.
 
 #### UC-009 — Devlog skeleton at finalization (optional)
 
@@ -128,7 +117,7 @@ guard). Composition rules for *consumer* catalogues are in
 - **Preconditions:** SET-001, SET-002; `devlog.enabled` in project.json.
 - **Flow:** agent tags (at most 2, `<client>-<MODEL>`) and codes validated; commits taken from git log or `--commit sha=summary` (≤ 3 sentences each); repository visibility checked (`gh`, else unknown); for public/unknown the devlog dir is added to `.gitignore`; the header file is written; the agent pastes the dialogue verbatim.
 - **Outcome:** the operator's actual words sit next to the commits they produced, without ever leaking into a public repository by default.
-- **Test:** covered — `tests/test_devlog.py`.
+- **Test:** covered — `tests/test_agent.py`.
 
 ---
 
@@ -145,7 +134,6 @@ guard). Composition rules for *consumer* catalogues are in
 | UC-001 | Interactive | FR-003 | `scripts/install.py` | covered |
 | UC-002 | Interactive | FR-001, FR-011 | `scripts/install.py` | covered |
 | UC-003 | Interactive | FR-003 | `scripts/install.py` | covered |
-| UC-004 | Interactive | FR-003 | `scripts/install.py` | covered |
 | UC-005 | Interactive | FR-004, FR-011 | `verification.py` | covered |
 | UC-006 | Interactive | FR-007 | `check.py` | covered |
 | UC-007 | Interactive | FR-005, FR-007 | `check.py` | covered |

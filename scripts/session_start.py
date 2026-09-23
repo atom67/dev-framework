@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""SessionStart hook: print the project's DEV Framework brief so the agent starts from context, not archaeology.
+"""Session-start hook (any host whose hook stdout becomes context; Claude Code today): print the project's DEV Framework brief so the agent starts from context, not archaeology.
 
 Silent (exit 0, no output) when the working directory is not a framework project — a hook must never
 add noise to an unrelated session. Standard library only.

@@ -50,40 +50,27 @@ Example for a Python project (adapt paths to actual code):
 }
 ```
 
-Finish requires doctor readiness, scans tracked and nonignored untracked WORKING files,
-then runs build/test/checks, stopping on failure. It works before first staging. Tracked
-deletions are represented in the snapshot. After each command it rejects source changes;
-generated outputs need deliberate Git ignores, not ignored application source. On success
-it prints the SHA256 source identity and counted test results. This is WORKTREE evidence,
-not permission to commit or proof of the future index. Record the digest in Handoff.
+Finish requires doctor readiness, scans tracked and nonignored untracked WORKING files for secrets,
+then runs build/test/checks, stopping on the first failure. It works before first staging.
+This is evidence about the working tree, not permission to commit.
 
-Before an authorized commit use commit-check. It additionally scans index blobs and
-requires index/worktree parity before/after commands, with no nonignored untracked files.
-It rejects assume-unchanged/skip-worktree flags that could hide edits. Git handles newline
-attributes/executable bits. The runner never stages, commits, pushes or launches an app.
-In CI a clean checkout permits the same commit-check command.
+Before an authorized commit use commit-check: finish plus a secret scan of the staged files.
+The runner never stages, commits, pushes or launches an app.
 
-### Fresh counted test evidence
+### Test counts
 
-Each test invocation receives a new `DEVFRAMEWORK_RUN_ID` and a unique, initially absent
-`DEVFRAMEWORK_TEST_REPORT` path outside the repository. The configured runner writes JSON:
+The test command prints one line that finish reads:
 
-```json
-{"format": 1, "run_id": "<copy DEVFRAMEWORK_RUN_ID>", "total": 12, "failed": 0, "errors": 0, "skipped": 0}
+```text
+TESTS: total=12 failed=0 skipped=0
 ```
 
-The unittest adapter does this automatically and fails on zero/all-skipped tests even
-standalone. Other stacks need a reviewed wrapper mapping their native JUnit/TRX/etc.
-result into this contract. Missing/oversized/malformed/stale reports, invalid counts,
-failures/errors, no executed tests or exceeded max_skipped fail. Expected failures count
-as skips in the unittest adapter. A legacy `python -m unittest discover` command without
-an evidence wrapper is deliberately NOT sufficient even when its exit status is 0.
-On upgrade, project.json is preserved: add test_evidence and adapt the test command.
+finish fails when that line is missing, when a test failed, when nothing ran (zero discovered or all
+skipped) or when skips exceed `max_skipped`. run_unittest.py, run_pytest.py and run_smoke.py print it;
+another stack needs a wrapper that prints it from its own results. A bare `python -m unittest` is NOT
+enough even when it exits 0: zero discovered tests also exit 0.
 
-Counts do not prove relevant coverage or honest runner implementation. Configured commands
-remain trusted. A snapshot covers named Git source files, not ignored dependencies, host
-configuration or a malicious process that edits and restores files between observations.
-Pin dependencies, isolate tests and preserve relevant environment details with evidence.
+Counts do not prove relevant coverage. Configured commands remain trusted; isolate tests from real data.
 
 This is NOT a sandbox: inspect configured commands and their scripts before running them.
 Commands may print application output; they must redact secrets themselves. A timeout

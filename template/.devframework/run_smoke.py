@@ -6,12 +6,11 @@ Reads `smoke` from .devframework/project.json — a list of cases:
    "expect_stdout": "examples/out.txt",   (optional: output must equal this file, line endings ignored)
    "expect_contains": "212",              (optional: output must contain this text)
    "expect_exit": 0}                      (optional, default 0)
-Runs each case, prints PASS/FAIL with the first difference, and writes the finish runner's counted evidence.
+Runs each case, prints PASS/FAIL with the first difference, and prints the TESTS line finish reads.
 """
 from __future__ import annotations
 
 import json
-import os
 from pathlib import Path
 import subprocess
 import sys
@@ -66,9 +65,7 @@ def main() -> int:
         else:
             print(f"PASS  {name}", flush=True)
     counts = {"total": len(cases), "failed": failed, "errors": errors, "skipped": 0}
-    report_path, run_id = os.environ.get("DEVFRAMEWORK_TEST_REPORT"), os.environ.get("DEVFRAMEWORK_RUN_ID")
-    if report_path and run_id:
-        Path(report_path).write_text(json.dumps({"format": 1, "run_id": run_id, **counts}), encoding="utf-8")
+    print(f"TESTS: total={counts['total']} failed={counts['failed'] + counts['errors']} skipped={counts['skipped']}")
     if not cases:
         print("FAILED: no smoke examples — add at least one to `smoke` in .devframework/project.json", file=sys.stderr)
         return 1

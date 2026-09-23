@@ -5,7 +5,6 @@ import ast
 from pathlib import Path
 import subprocess
 import sys
-import unittest
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.dont_write_bytecode = True
@@ -37,12 +36,8 @@ def main() -> int:
     for path in files:
         ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
     print(f"Syntax: {len(files)} Python files", flush=True)
-    suite = unittest.defaultTestLoader.discover(str(ROOT / "tests"))
-    if suite.countTestCases() == 0:
-        print("FAILED: no package tests discovered", file=sys.stderr)
-        return 1
-    result = unittest.TextTestRunner(verbosity=2).run(suite)
-    if not result.wasSuccessful():
+    runner = ROOT / "template" / ".devframework" / "run_unittest.py"  # fails on zero tests itself
+    if subprocess.run([sys.executable, "-B", str(runner), "--start", "tests", "--jobs", "auto"], cwd=ROOT).returncode:
         return 1
     sys.path.insert(0, str(ROOT / "template" / ".devframework"))
     from source_scope import snapshot, scan_worktree

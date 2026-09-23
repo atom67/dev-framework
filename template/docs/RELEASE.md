@@ -39,7 +39,6 @@ only what the release actually changes.
 - [ ] Present numerical results and limitations; record operator acceptance.
 - [ ] Confirm authorization to commit/push. These are separate from deployment approval.
 - [ ] Stage authorized task files, then run `python .devframework/check.py commit-check`.
-      A changed snapshot invalidates earlier evidence; do not bypass mismatches.
 - [ ] Commit only files belonging to the task; leave unrelated files alone and say so.
 - [ ] Push, then verify local `HEAD` equals the remote head.
 

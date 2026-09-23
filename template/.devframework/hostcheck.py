@@ -37,6 +37,8 @@ CLASSES = {
                "a mandatory ad-hoc verification script duplicates the finish gate (scripts/run_tests.sh is the evidence)",
                "drop the host rule; `df_check finish` / `scripts/run_tests.sh` is the verification"),
 }
+OVERRIDE = ("Codex reads AGENTS.override.md INSTEAD of AGENTS.md in this folder: the framework contract is not loaded",
+            "merge what the override needs into PROJECT.md and delete AGENTS.override.md, or keep it for non-Codex work only")
 REGISTER_HEADING = re.compile(r"^## Host precedence\s*$", re.M)
 REGISTER_LINE = re.compile(r"^\s*-\s*([a-z]+)@([^\s:]+)\s*:\s*(.+?)\s*$")
 
@@ -46,8 +48,10 @@ def host_files(root: Path) -> list[Path]:
     candidates: list[Path] = []
     if os.environ.get("HERMES_HOME"):
         candidates.append(Path(os.environ["HERMES_HOME"]) / "SOUL.md")
-    candidates += [home / ".hermes" / "SOUL.md", home / ".claude" / "CLAUDE.md", home / ".codex" / "AGENTS.md",
-                   root / ".cursorrules"]
+    codex = Path(os.environ.get("CODEX_HOME") or home / ".codex")
+    candidates += [home / ".hermes" / "SOUL.md", home / ".claude" / "CLAUDE.md", codex / "AGENTS.md",
+                   codex / "AGENTS.override.md", root / "AGENTS.override.md",
+                   home / ".config" / "opencode" / "AGENTS.md", root / ".cursorrules"]
     for folder in (home / ".claude" / "rules", root / ".cursor" / "rules"):
         if folder.is_dir():
             candidates += sorted(p for p in folder.rglob("*") if p.suffix in (".md", ".mdc") and p.is_file())
@@ -66,10 +70,12 @@ def host_files(root: Path) -> list[Path]:
 SKILL_REF = re.compile(r"(?:скилл?|skill)\s+[`'\"]([A-Za-z0-9_-]+)[`'\"]", re.I)
 
 
-def referenced_skills(files: list[Path]) -> list[Path]:
+def referenced_skills(files: list[Path], root: Path | None = None) -> list[Path]:
     """Skills a host file tells the agent to read (e.g. "прочитай скилл x"): their text is host context too."""
     roots = [Path(os.environ["HERMES_HOME"]) / "skills"] if os.environ.get("HERMES_HOME") else []
-    roots.append(Path.home() / ".hermes" / "skills")
+    roots += [Path.home() / ".hermes" / "skills", Path.home() / ".claude" / "skills", Path.home() / ".agents" / "skills"]
+    if root is not None:
+        roots.append(root / ".agents" / "skills")  # OpenCode and Codex read project skills from here
     for home in ([Path(os.environ["HERMES_HOME"])] if os.environ.get("HERMES_HOME") else []) + [Path.home() / ".hermes"]:
         config = home / "config.yaml"
         if config.is_file():  # skills.external_dirs: one path, or a YAML list — no yaml module needed for either
@@ -94,7 +100,13 @@ def scan(root: Path) -> list[dict]:
     """Every (class, file, line, quote) that matches a conflict class, in file order."""
     found = []
     files = host_files(root)
-    files += [p for p in referenced_skills(files) if p not in files]
+    files += [p for p in referenced_skills(files, root) if p not in files]
+    override = root / "AGENTS.override.md"
+    if override.is_file():
+        first = next((line.strip() for line in override.read_text(encoding="utf-8", errors="replace").splitlines()
+                      if line.strip()), "(empty)")
+        found.append({"class": "override", "file": override, "line": 1, "quote": first[:110],
+                      "why": OVERRIDE[0], "fix": OVERRIDE[1]})
     for path in files:
         try:
             lines = path.read_text(encoding="utf-8", errors="replace").splitlines()

@@ -66,10 +66,11 @@ def df_init(args: dict, **kwargs) -> str:
         return "ERROR: a product needs a scale (integer + unit, e.g. \"100 users\"); it is a product decision — ask the operator."
     profile = args.get("profile") or "generic"
     argv = [sys.executable, "-B", str(PACKAGE / "scripts" / "install.py"), "--target", str(target), "--name", name,
-            "--kind", kind, "--profile", profile, "--devlog" if args.get("devlog") else "--no-devlog"]
+            "--kind", kind, "--profile", profile, "--devlog" if args.get("devlog") else "--no-devlog", "--hermes"]
     argv += ["--scale", scale] if scale else []
+    argv += ["--testing", args["testing"]] if args.get("testing") in ("lean", "advanced") else []
     if args.get("update"):  # with kind: promotion explore → tool → product (product also needs scale)
-        argv = [sys.executable, "-B", str(PACKAGE / "scripts" / "install.py"), "--target", str(target), "--update"]
+        argv = [sys.executable, "-B", str(PACKAGE / "scripts" / "install.py"), "--target", str(target), "--update", "--hermes"]
         argv += (["--kind", kind] if kind else []) + (["--scale", scale] if scale else [])
     code, out = _run(argv, PACKAGE, 120)
     if code:
@@ -92,8 +93,8 @@ def df_check(args: dict, **kwargs) -> str:
     devframework = _framework_dir(target)
     if devframework is None:
         return f"ERROR: {target} has no .devframework/check.py — run df_init first."
-    if mode not in ("doctor", "finish", "commit-check", "selftest", "secrets", "hostcheck"):
-        return "ERROR: mode must be doctor | finish | commit-check | selftest | secrets | hostcheck"
+    if mode not in ("doctor", "finish", "commit-check", "secrets", "hostcheck"):
+        return "ERROR: mode must be doctor | finish | commit-check | secrets | hostcheck"
     if mode == "hostcheck":
         code, out = _run([sys.executable, "-B", str(devframework / "hostcheck.py"), str(target)], target, 60)
         return f"hostcheck {'CLEAN' if code == 0 else 'CONFLICTS'} (exit {code})\n{_trim(out, 60, 6000)}"
@@ -150,6 +151,7 @@ SCHEMAS = {
                 "kind": {"type": "string", "enum": ["product", "tool", "explore"], "description": "What is being built — the operator's decision, ask: product (full documents + tests), tool (guide.html + smoke examples), explore (minimum; promote later with update+kind)."},
                 "scale": {"type": "string", "description": "Product only: integer + unit, e.g. '100 users'. A product decision — ask if unknown."},
                 "profile": {"type": "string", "enum": ["generic", "personal-desktop", "service"], "description": "Workflow profile (default generic)."},
+                "testing": {"type": "string", "enum": ["lean", "advanced"], "description": "Product only, ask: lean (default below 10,000 users) or advanced (tens of thousands of users, production, high cost of error)."},
                 "devlog": {"type": "boolean", "description": "Verbatim devlog of finished dialogues — ask the operator, never assume (default false; local-only in public repos)."},
                 "update": {"type": "boolean", "description": "Update an existing installation to this framework version instead of installing."},
             },
@@ -161,9 +163,8 @@ SCHEMAS = {
         "description": (
             "Run a DEV Framework gate in a repository and return its verdict with a short output. Modes: doctor "
             "(structure + configuration; READY / NOT READY with the setup items), finish (doctor + secret heuristic + "
-            "build + counted tests + checks — the evidence that work is done; needs git), commit-check (finish + "
-            "index/worktree parity, before an authorized commit), selftest (proves the gates fire on planted defects, "
-            "in a temp copy), secrets (worktree secret heuristic), hostcheck (rules in the operator's profile — SOUL, "
+            "build + tests (more than zero run, none failed) + checks — the evidence that work is done), commit-check "
+            "(finish + staged secret scan, before an authorized commit), secrets (worktree secret heuristic), hostcheck (rules in the operator's profile — SOUL, "
             "CLAUDE.md, always-read skills — that fight the framework, each with a quote and a fix; decisions are recorded in "
             "PROJECT.md ## Host precedence; unrecorded ones stay doctor warnings). Child output is logged to .devframework/last_run.log; "
             "only counts and the first failure are returned. finish is also recorded as verification evidence for Hermes."
@@ -172,7 +173,7 @@ SCHEMAS = {
             "type": "object",
             "properties": {
                 "target": {"type": "string", "description": "Repository directory."},
-                "mode": {"type": "string", "enum": ["doctor", "finish", "commit-check", "selftest", "secrets", "hostcheck"], "description": "Which gate (default doctor)."},
+                "mode": {"type": "string", "enum": ["doctor", "finish", "commit-check", "secrets", "hostcheck"], "description": "Which gate (default doctor)."},
                 "structural": {"type": "boolean", "description": "doctor only: accept a fresh scaffold as structurally valid."},
                 "verbose": {"type": "boolean", "description": "finish/commit-check: stream the full child output instead of logging it."},
             },
@@ -212,7 +213,7 @@ def _cli_setup(parser) -> None:
     init.add_argument("--profile", default="generic"); init.add_argument("--devlog", action="store_true")
     init.add_argument("--kind", choices=["product", "tool", "explore"])
     init.add_argument("--update", action="store_true")
-    check = sub.add_parser("check", help="doctor | finish | commit-check | selftest | secrets")
+    check = sub.add_parser("check", help="doctor | finish | commit-check | secrets")
     check.add_argument("target"); check.add_argument("mode", nargs="?", default="doctor"); check.add_argument("--verbose", action="store_true")
     nav = sub.add_parser("nav", help="brief | find | index | contract | checklist | handoff")
     nav.add_argument("target"); nav.add_argument("command"); nav.add_argument("rest", nargs="*")

@@ -37,20 +37,21 @@ Anything marked **UNVERIFIED** must be confirmed by a live run before the phase 
 
 Each item benefits the shipped Claude Code and Hermes adapters too.
 
-- [ ] **Fix: brief reports "up to date" after a failed fetch.** `navigate.freshness()` ignores the return code of
+- [x] **Done v1.5.0. Fix: brief reports "up to date" after a failed fetch.** `navigate.freshness()` ignores the return code of
       `git fetch`. In a sandbox without network (Codex default) or offline, the fetch fails quietly and the brief
       compares against **stale** remote refs. Check the return code and report
       `remote: not checked (fetch failed — offline or sandbox)`. One regression test: an unreachable remote.
-- [ ] **Commands → skills.** Add `skills/df-init`, `skills/df-check`, `skills/df-nav` carrying the text of
+- [x] **Done v1.5.0 (D1-A: commands are one-line aliases). Commands → skills.** Add `skills/df-init`, `skills/df-check`, `skills/df-nav` carrying the text of
       `commands/*.md` (project resolution, "ask, never guess"). Keep `commands/` as thin aliases for Claude Code and
       Cursor, or delete them — **operator decision D1**.
-- [ ] **One session-start script for every host.** Rename `scripts/claude_session_start.py` → `scripts/session_start.py`
+- [x] **Done v1.5.0 as a rename; `--format` waits for the Phase 2 Cursor spike (its JSON shape and project-dir input are unverified). One session-start script for every host.** Rename `scripts/claude_session_start.py` → `scripts/session_start.py`
       with `--format text|cursor-json`. It locates the plugin through `__file__` (no host variable needed) and keeps
       the v1.2.1 guarantee that no code from the opened repository runs. Test: both formats, silent outside a project.
-- [ ] **hostcheck knows the new hosts' rule files.** Add `AGENTS.override.md` (Codex, repo and `~/.codex`), which
+- [x] **Done v1.5.0 (+ a root AGENTS.override.md is reported as a structural conflict). hostcheck knows the new hosts' rule files.** Add `AGENTS.override.md` (Codex, repo and `~/.codex`), which
       *wins* over `AGENTS.md`; `~/.config/opencode/AGENTS.md`; `.cursor/rules/*.mdc` with `alwaysApply: true`;
       `.agents/skills` referenced by host files. Test with a planted override.
-- [ ] **Plugin payload.** Every host copies the package into its cache (Claude Code copies all 1.1 MB, including
+- [x] **Cancelled 2026-09-23 by the operator (D2): no `dist/` branch** — 0.55 MB package, ~0.2 MB of it not
+      needed by users; a build step and CI job would cost more than they save. **Plugin payload.** Every host copies the package into its cache (Claude Code copies all 1.1 MB, including
       `evals/` and `docs/`). Decide on a publish boundary: a `dist/` branch, or manifest path fields where the host
       supports them — **operator decision D2**.
 
@@ -123,6 +124,7 @@ local storage, and Cursor has no known export. Record baselines in `evals/RESULT
 ## 7. Operator decisions
 
 **Decided 2026-09-23 by the operator: D1 = A, D2 = A, D3 = A, D4 = Codex → Cursor → OpenCode (all as recommended).**
+**D2 reversed the same day: no `dist/` branch** (simplification pass; the payload is small).
 
 | # | Decision | Recommendation |
 |---|---|---|

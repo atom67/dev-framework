@@ -81,9 +81,12 @@ def freshness(root: Path) -> str:
     if not upstream:
         return "remote: branch has no upstream — compare with the shared branch by hand before editing"
     try:
-        subprocess.run(["git", "-C", str(root), "fetch", "--quiet"], capture_output=True, timeout=20)
+        fetched = subprocess.run(["git", "-C", str(root), "fetch", "--quiet"], capture_output=True, timeout=20)
     except (OSError, subprocess.TimeoutExpired):
-        return f"remote: fetch failed or timed out — assume {upstream} may be ahead; pull before editing"
+        fetched = None
+    if fetched is None or fetched.returncode:  # offline or a sandbox without network: the refs are stale, not current
+        return (f"remote: NOT CHECKED (fetch failed — offline or sandbox) — assume {upstream} may be ahead; "
+                "pull before editing")
     counts = git(root, "rev-list", "--left-right", "--count", f"HEAD...{upstream}")
     if not counts:
         return f"remote: cannot compare with {upstream}"
@@ -120,6 +123,12 @@ def open_items(path: Path) -> list[tuple[int, str]]:
     return [(number, text) for number, (done, text) in enumerate(items, 1) if not done]
 
 
+def untested(root: Path) -> list[str]:
+    """Use cases whose **Test:** is neither covered nor NFV — advanced testing blocks a commit on them."""
+    return [i for _, i, _, b in blocks(root) if i.startswith("UC-")
+            and not field(b, "Test").lstrip("`*_ ").lower().startswith(("covered", "nfv"))]
+
+
 def doctor_line(root: Path) -> str:
     try:
         from verification import doctor
@@ -143,6 +152,13 @@ def brief(root: Path) -> str:
     try:
         from verification import installed_kind
         out.append(f"kind: {installed_kind(root)} (product / tool / explore — decides the documents and the proof)")
+        import json
+        testing = json.loads(read(root, ".devframework/project.json") or "{}").get("testing") or "not set"
+        out.append(f"testing: {testing} (lean / advanced — AGENTS.md §4 says what each demands)")
+        from verification import testing_note
+        note = testing_note(root)
+        if note:
+            out.append("  ⚠ " + note)
     except Exception:  # an older verification.py next to this file: the brief still works without the line
         pass
     out.append(doctor_line(root))
@@ -226,18 +242,19 @@ CONTRACT = """\
 DEV Framework contract (what the gates check). Details: .devframework/VERIFICATION.md; rules: AGENTS.md.
 wip     = `<!-- under-construction: reason (until YYYY-MM-DD) -->` in PROJECT.md or docs/: doctor skips that
           document's checks and names it every run; never secrets, tests or file presence; expires on the date.
+testing = `testing` in project.json: lean (one scenario test per user promise, suite < 1 min) or advanced
+          (unit + integration + e2e, staging; commit-check refuses a UC `gap`); AGENTS.md §4.
 kind    = product (this contract). A tool or an exploration prints its own; promote with --update --kind.
 doctor  = structure + configuration. READY needs: every framework file present; PROJECT.md and docs/ARCHITECTURE.md
           without `TODO(project):`; .devframework/project.json with a reviewed `test` argv (build may be null with a
           `build_not_applicable` text); docs/USE_CASES.md with >= 1 `#### UC-### — title` heading, each with a
           `**Test:**` field and a row in the traceability table; SET/UC citations only to existing ids.
 finish  = doctor + worktree secret heuristic + build (if any) + test + extra checks; argv form, no shell; needs git.
-          The test runner writes counted evidence (run_unittest.py does; > 0 tests, skipped <= max_skipped);
+          The test command prints `TESTS: total=N failed=F skipped=S` (run_unittest.py does); > 0 run, none failed.
           `--jobs auto` gives it one process per test module. It discovers unittest-style tests (TestCase
-          classes) only. Plain pytest functions: run_pytest.py (same evidence; pytest must be installed).
-          Source must not change while it runs. Prints TEST EVIDENCE, SOURCE SHA256, FINISH PASSED; regenerates docs/INDEX.md.
-commit-check = finish + index/worktree parity + staged-blob secret scan. Only before an authorized commit.
-selftest = proves the gates bite: plants a fake UC, a fake secret and a timer in a temp copy and expects failures.
+          classes) only. Plain pytest functions: run_pytest.py (same line; pytest must be installed).
+          Prints the counts and FINISH PASSED; regenerates docs/INDEX.md.
+commit-check = finish + staged secret scan. Only before an authorized commit.
 Documents: PROJECT.md (facts) · docs/USE_CASES.md (value paths, stable UC-### ids, Test: covered | gap | not
           functionally verifiable) · docs/KNOWN_ERRORS.md (KE-YYYY-MM-DD-SLUG, Status: not fixed | fixed in …) ·
           docs/BACKLOG.md · docs/REQUIREMENTS.md (FR-/NFR-) · docs/ARCHITECTURE.md · docs/INVARIANTS.md ·
@@ -325,22 +342,26 @@ KIND_CONTRACT = {
 DEV Framework contract for a TOOL (what the gates check). Rules: AGENTS.md.
 wip     = `<!-- under-construction: reason (until YYYY-MM-DD) -->` in PROJECT.md or docs/: doctor skips that
           document's checks and names it every run; never secrets, tests or file presence; expires on the date.
+testing = `testing` in project.json: lean (one scenario test per user promise, suite < 1 min) or advanced
+          (unit + integration + e2e, staging; commit-check refuses a UC `gap`); AGENTS.md §4.
 doctor  = structure + configuration. READY needs: PROJECT.md and docs/GUIDE.html without `TODO(project):`
           (the guide is the user's instruction: install, run, examples, errors, limits); 1-3 `smoke` examples in
           .devframework/project.json: {"name", "run": [argv, "{python}" allowed], "stdin"?, "expect_stdout": file |
           "expect_contains": text, "expect_exit"?}. No use cases, backlog or regression plan.
-finish  = doctor + secret heuristic + run_smoke.py (the tool run on every example = the counted evidence); needs git.
-          A wrong example fails the gate. Prints TEST EVIDENCE, SOURCE SHA256, FINISH PASSED.
-commit-check = finish + index/worktree parity + staged-blob secret scan. Only before an authorized commit.
+finish  = doctor + secret heuristic + run_smoke.py (the tool run on every example = its tests); needs git.
+          A wrong example fails the gate.
+commit-check = finish + staged secret scan. Only before an authorized commit.
 Grow into a product: install.py --update --kind product --scale "<target>" (adds documents, overwrites none).""",
     "explore": """\
 DEV Framework contract for an EXPLORATION (what the gates check). Rules: AGENTS.md.
 wip     = `<!-- under-construction: reason (until YYYY-MM-DD) -->` in PROJECT.md or docs/: doctor skips that
           document's checks and names it every run; never secrets, tests or file presence; expires on the date.
+testing = `testing` in project.json: lean (one scenario test per user promise, suite < 1 min) or advanced
+          (unit + integration + e2e, staging; commit-check refuses a UC `gap`); AGENTS.md §4.
 doctor  = structure + configuration. READY needs: PROJECT.md without `TODO(project):` (intent, open questions).
 finish  = doctor + secret heuristic + tests if a test command is configured; without one it passes and says
           plainly that behaviour is NOT proven. Record what you learn, dated, under "What we learned".
-commit-check = finish + index/worktree parity + staged-blob secret scan. Only before an authorized commit.
+commit-check = finish + staged secret scan. Only before an authorized commit.
 Grow: install.py --update --kind tool, or --kind product --scale "<target>" (adds documents, overwrites none).""",
 }
 

@@ -1,7 +1,7 @@
 # kinds — Development kinds: product / tool / explore (v1.3.0)
 
 **Started:** 2026-09-23
-**Status:** in progress
+**Status:** done 2026-09-23
 
 ## Scope agreed with the operator
 

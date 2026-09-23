@@ -131,24 +131,35 @@ without sending source code, credentials or private incident data automatically.
 
 ## 4. Verification and acceptance
 
-Use the project's test framework and isolated fixtures. Cover risk, not an arbitrary
-number of tests: normal behaviour, boundaries, invalid input, interruption and concurrency
-where relevant. Test persistence with temporary stores and crash recovery in child processes.
-Never use a real profile, production database, actual token or live integration as a fixture.
+**Testing depth** is `testing` in `.devframework/project.json`, chosen by the operator:
+- **Lean testing** — recommended for explorations, tools and software with a small number of users. One
+  scenario test per user-visible promise, run through the real entry point (CLI, API, UI adapter) on
+  isolated fixtures. No tests of internals and no matrix of edge cases until a defect shows one is needed
+  (then its regression test). Before trusting a new test, break the behaviour once in a scratch copy and
+  see the test fail. The whole suite runs in under a minute.
+- **Advanced testing** — recommended from tens of thousands of users, for complex projects with a
+  production environment and a high cost of error. Unit tests for logic with branches, integration tests
+  for storage, network and process boundaries, end-to-end tests for every critical user path; negative
+  and boundary cases at every trust boundary; interruption, concurrency and crash recovery in child
+  processes where relevant; every use case `covered` or `NFV` (commit-check refuses a `gap`); a current
+  regression plan (`docs/REGRESSION_TEST.md`); verification in an isolated staging environment before production.
+
+Both: use the project's test framework; never a real profile, production database, actual token or live
+integration as a fixture. Moving to advanced is the operator's call when users, production or the cost of
+an error grow; say so when you see it.
 
 For a regression, demonstrate the relevant test fails on a synthetic defect/old behaviour
 and passes on the correction. Do this in fixtures or an isolated checkout, not a live app.
 A pure-function test is not evidence for concurrent I/O or crash durability.
 
 After implementation run `python .devframework/check.py finish`. Configure its build,
-test and extra-check commands and counted evidence for this stack. Build all consumers of
+test and extra-check commands for this stack; the test command reports its counts. Build all consumers of
 shared code. Missing checks mean NOT READY, not success. Report failures and blocked work
 honestly; do not claim completion or expand authority to make a check pass.
 
-Finish identifies the verified working-source digest, not a future commit. Before an
-authorized commit run `python .devframework/check.py commit-check`; it rejects nonignored
-untracked files, index/worktree differences and hidden-change flags. Stage only when
-authorized. Later edits invalidate evidence; never bypass checks for convenience.
+Finish is evidence about the working tree, not a future commit. Before an authorized commit run
+`python .devframework/check.py commit-check`; it adds a secret scan of the staged files. Stage only when
+authorized. Later edits invalidate the result; never bypass checks for convenience.
 
 Register critical behaviour in [invariants](docs/INVARIANTS.md). Test actual entry adapters,
 not just the guard.

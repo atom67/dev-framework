@@ -1,13 +1,11 @@
-"""pytest adapter emitting the finish runner's counted evidence (plain `def test_...` functions welcome).
+"""pytest adapter printing the TESTS line finish reads (plain `def test_...` functions welcome).
 
 Runs `python -m pytest --junitxml=<temp>` with any extra arguments you pass (for example `-n auto` when
-pytest-xdist is installed) and turns the JUnit XML totals into the same report run_unittest.py writes.
+pytest-xdist is installed) and turns the JUnit XML totals into the same TESTS line run_unittest.py prints.
 pytest itself must be installed in the interpreter that runs the gate; this file is standard library only.
 """
 from __future__ import annotations
 
-import json
-import os
 from pathlib import Path
 import subprocess
 import sys
@@ -39,9 +37,7 @@ def main() -> int:
                   f"({sys.executable} -m pip install pytest, or use run_unittest.py)", file=sys.stderr)
             return 1
         counts = junit_counts(junit)
-    report_path, run_id = os.environ.get("DEVFRAMEWORK_TEST_REPORT"), os.environ.get("DEVFRAMEWORK_RUN_ID")
-    if report_path and run_id:
-        Path(report_path).write_text(json.dumps({"format": 1, "run_id": run_id, **counts}), encoding="utf-8")
+    print(f"TESTS: total={counts['total']} failed={counts['failed'] + counts['errors']} skipped={counts['skipped']}")
     if not counts["total"] or counts["total"] <= counts["skipped"]:
         print("FAILED: no tests executed", file=sys.stderr)
         return 1

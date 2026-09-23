@@ -1,8 +1,6 @@
-"""Bounded Git source snapshots; no staging, checkout or index writes."""
+"""Bounded Git source snapshot for the secret heuristic; no staging, checkout or index writes."""
 from __future__ import annotations
 
-import hashlib
-import json
 from pathlib import Path
 
 from safety import checked_path, child
@@ -34,12 +32,6 @@ def snapshot(root: Path) -> dict[str, bytes | None]:
     return files
 
 
-def identity(files: dict[str, bytes | None]) -> str:
-    hashes = {name: None if data is None else hashlib.sha256(data).hexdigest()
-              for name, data in sorted(files.items())}
-    return hashlib.sha256(json.dumps(hashes, sort_keys=True).encode("utf-8")).hexdigest()
-
-
 def scan_worktree(files: dict[str, bytes | None]) -> dict:
     report = empty_report()
     for name, data in files.items():
@@ -48,19 +40,3 @@ def scan_worktree(files: dict[str, bytes | None]) -> dict:
     if not report["text_files"]:
         raise ValueError("No text source inspected")
     return report
-
-
-def require_index_parity(root: Path) -> bytes:
-    # Git understands autocrlf, attributes and executable bits. Reject flags which can
-    # hide changes from diff. Filters/commands are trusted project configuration, not a sandbox.
-    flags = git(root, "ls-files", "-v", "-z")
-    if any(row and (row[:1].islower() or row[:1] == b"S") for row in flags.split(b"\0")):
-        raise ValueError("Index assume-unchanged/skip-worktree flags prevent parity verification")
-    if git(root, "ls-files", "--others", "--exclude-standard", "-z"):
-        raise ValueError("Commit check requires nonignored untracked files to be resolved")
-    if git(root, "diff", "--no-ext-diff", "--no-textconv", "--name-only", "--"):
-        raise ValueError("Index differs from working tree; commit content is NOT verified")
-    index = git(root, "ls-files", "--stage", "-z")
-    if not index:
-        raise ValueError("Empty index is not a verified commit")
-    return index

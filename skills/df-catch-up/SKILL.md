@@ -30,8 +30,7 @@ unconfirmed.** A drifted document lies confidently; a missing one at least sends
    decision per line, edit the host file with authorization (backup first), record decisions in `PROJECT.md` →
    `## Host precedence`. Unrecorded collisions stay doctor warnings — including rules added later. The decision is the operator's: never
    record `kept`/`replaced` yourself, even when told not to ask — this is the one question the framework requires.
-6. **Audits**: `df_check(target, "selftest")` proves the doctor contract and the secret heuristic fire;
-   run `df_check(target, "secrets")` for the worktree; read every repeating operation (timers, polls,
+6. **Audits**: run `df_check(target, "secrets")` for the worktree; read every repeating operation (timers, polls,
    retries) and write its `cost:` at the scale target — this one is a reading exercise, no tool simulates it.
 7. `df_check(target, "doctor")` READY, existing tests still pass (`df_check(target, "finish")`), then the
    handover in numbers: documents and cases reconstructed (covered / gap / NFV), known errors registered,

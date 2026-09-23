@@ -4,8 +4,8 @@
 
 - Found in uncommitted v0.2 second review. check.py accepted unittest's successful zero-test
   exit and tested a fixed working copy while the staged source still contained a defect.
-- Status: fixed in uncommitted v0.2 hardening; tests/test_evidence_scope.py verifies counted
-  evidence, worktree-only finish and index parity. Pre-existing 63 tests did not cover this.
+- Status: fixed in v0.2. Simplified 2026-09-23: the runner prints one `TESTS:` line and finish fails
+  on zero executed tests (tests/test_gates.py); the snapshot digest and index parity were removed.
 
 ## KE-2026-08-31-SECRET-FORMATS — common literals missed, OAuth metadata flagged
 
@@ -25,7 +25,7 @@
 ## KE-2026-08-31-SCALE — custom scale retained 10k totals
 
 - Introduced: c48cf74; detected: 2026-08-31 review.
-- Where: template/AGENTS.md cost example, install.ps1 substitution.
+- Where: template/AGENTS.md cost example, installer substitution.
 - Impact: 50k deployment estimate understated requests fivefold; 5k overstated twofold.
 - Cause: string substitution changed the label, not the calculated totals.
 - Status: fixed in v0.2.0 working tree, not yet committed/accepted.
@@ -71,8 +71,8 @@
 - Finish runs reviewed project commands, not a sandbox. Timeout does not guarantee that
   detached descendants are stopped; test process ownership remains a project concern.
 - Installer protects normal local edits and blocks unsafe paths. It does not defend
-  against malicious concurrent filesystem replacement. Recovery is multi-file and
-  journaled, not an atomically visible transaction or power-loss certification.
+  against malicious concurrent filesystem replacement. A multi-file update is not atomic:
+  an interrupted run is repeated; replaced files stay in .devframework/backups/.
 - Native handoff pilot is blocked: Claude OAuth expired; Codex read commands denied by
   machine policy; Cursor agent unavailable in inspected CLI. See the evidence report.
   Hosted Linux/Windows CI remains unexecuted pending accepted commit/push.

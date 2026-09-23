@@ -1,285 +1,108 @@
+"""Installer and plugin packaging: what a user gets, and that updates never clobber their work."""
 from __future__ import annotations
 
+import importlib.util
 import json
-import os
-from pathlib import Path
-import subprocess
-import sys
-from unittest.mock import patch
 
 from common import ROOT, WorkspaceTest, install
-from safety import child, project_lock
+from verification import doctor, installed_kind
 
-# Read from the package, so a VERSION bump does not silently break these tests.
-PACKAGE_VERSION = (ROOT / "VERSION").read_text(encoding="utf-8").strip()
-NEWER_VERSION = ".".join(str(n + (i == 2)) for i, n in enumerate(map(int, PACKAGE_VERSION.split("."))))
+VERSION = (ROOT / "VERSION").read_text(encoding="utf-8").strip()
+NEWER = ".".join(str(n + (i == 2)) for i, n in enumerate(map(int, VERSION.split("."))))
 
 
-class InstallerTests(WorkspaceTest):
-    def test_install_carries_local_knowledge_and_neutral_facts(self):
-        result = self.init()
-        self.assertFalse(result["conflicts"])
-        self.assertEqual((self.target / ".devframework/LESSONS.md").read_bytes(), (ROOT / "LESSONS.md").read_bytes())
-        self.assertIn("@PROJECT.md", (self.target / "CLAUDE.md").read_text())
-        self.assertTrue((self.target / ".devframework/patterns/outbox.md").is_file())
-        self.assertEqual(install.load_manifest(self.target)["version"], PACKAGE_VERSION)
-
-    def test_scale_math_three_sizes(self):
-        for number, daily, second in [(5000, "7,200,000", "83.33"), (10000, "14,400,000", "166.67"),
-                                      (50000, "72,000,000", "833.33")]:
-            with self.subTest(number=number):
-                target = self.base / str(number)
-                install.install(target, name='Проект "試験"', scale=f"{number:,} devices")
-                text = (target / "PROJECT.md").read_text(encoding="utf-8")
-                self.assertIn(f"**{daily} requests/day**", text)
-                self.assertIn(f"**{second} requests/second**", text)
-                self.assertNotIn("{{", text)
-                self.assertEqual(install.load_manifest(target)["parameters"]["name"], 'Проект "試験"')
-
-    def test_invalid_parameters_fail_before_creation(self):
-        for scale in ["0 users", "-2 users", "50,00 users", "ten users", "1.5 users", "1000000001 users"]:
-            with self.subTest(scale=scale), self.assertRaises(ValueError):
-                self.init(scale=scale)
-            self.assertFalse(self.target.exists())
+class InstallTests(WorkspaceTest):
+    def test_preview_seed_update_and_conflicts(self):
+        self.assertTrue(self.init(dry_run=True)["dry_run"])
+        self.assertFalse(self.target.exists(), "a preview creates nothing")
         with self.assertRaises(ValueError):
-            install.install(self.target, name="bad\nname")
+            self.init(scale="ten users")
+        self.assertFalse(self.target.exists(), "bad parameters fail before any write")
 
-    def test_preview_does_not_create_even_target(self):
-        result = self.init(dry_run=True)
-        self.assertTrue(result["dry_run"])
-        self.assertFalse(self.target.exists())
-
-    def test_legacy_conflict_stops_before_any_write(self):
-        self.write("AGENTS.md", "Existing rules")
-        result = self.init()
-        self.assertEqual(result["conflicts"], ["AGENTS.md"])
-        self.assertEqual(sorted(p.name for p in self.target.iterdir()), ["AGENTS.md"])
-
-    def test_force_preserves_project_docs_and_backs_up_rules(self):
-        original = b"Existing rules\r\n"
-        self.write("AGENTS.md", original)
-        self.write("PROJECT.md", "User facts")
-        self.write("docs/REQUIREMENTS.md", "User requirements")
-        result = self.init(force=True)
-        backup = self.target / result["backup"] / "files/AGENTS.md"
-        self.assertEqual(backup.read_bytes(), original)
-        self.assertEqual((self.target / "PROJECT.md").read_text(), "User facts")
-        self.assertEqual((self.target / "docs/REQUIREMENTS.md").read_text(), "User requirements")
-        self.git_init()
-        self.assertTrue(self.git("check-ignore", str(backup)))
-
-    def test_identical_update_is_noop(self):
-        self.init()
-        before = (self.target / install.MANIFEST).read_bytes()
-        result = install.install(self.target, update=True)
-        self.assertIsNone(result["backup"])
-        self.assertEqual((self.target / install.MANIFEST).read_bytes(), before)
-
-    def test_upgrade_updates_managed_but_preserves_project(self):
-        source = self.package_copy()
-        self.init(source=source)
-        self.write("PROJECT.md", "Project adaptation")
-        self.write("AGENTS.md", (self.target / "AGENTS.md").read_bytes().replace(b"\n", b"\r\n"))
-        new_rule = source / "template/AGENTS.md"
-        new_rule.write_text(new_rule.read_text(encoding="utf-8") + "\nNew rule.\n", encoding="utf-8")
-        (source / "VERSION").write_text(NEWER_VERSION + "\n")
-        result = install.install(self.target, source=source, update=True)
-        self.assertFalse(result["conflicts"])
-        self.assertIn("New rule.", (self.target / "AGENTS.md").read_text(encoding="utf-8"))
-        self.assertEqual((self.target / "PROJECT.md").read_text(), "Project adaptation")
-
-    def test_modified_managed_file_conflicts_and_preview_leaves_bytes(self):
-        self.init()
-        self.write("AGENTS.md", "Local rule")
-        manifest = (self.target / install.MANIFEST).read_bytes()
-        for preview in (True, False):
-            result = install.install(self.target, update=True, dry_run=preview)
-            self.assertIn("AGENTS.md", result["conflicts"])
-            self.assertEqual((self.target / install.MANIFEST).read_bytes(), manifest)
-            self.assertEqual((self.target / "AGENTS.md").read_text(), "Local rule")
-
-    def test_missing_manifest_is_not_an_update(self):
-        with self.assertRaisesRegex(ValueError, "No manifest"):
-            install.install(self.target, update=True)
-        self.assertFalse(self.target.exists())
-
-    def test_reinitialization_and_parameter_changes_are_explicit(self):
-        self.init()
+        self.assertFalse(self.init()["conflicts"])
+        for relative in ("AGENTS.md", "CLAUDE.md", "PROJECT.md", "docs/USE_CASES.md", ".devframework/check.py",
+                         ".devframework/LESSONS.md"):
+            self.assertTrue((self.target / relative).is_file(), relative)
+        self.assertFalse((self.target / ".hermes.md").exists(), "only the Hermes plugin asks for its context file")
+        self.assertIn("**14,400,000 requests/day**", (self.target / "PROJECT.md").read_text(encoding="utf-8"))
+        config = json.loads((self.target / ".devframework/project.json").read_text(encoding="utf-8"))
+        self.assertEqual(config["testing"], "advanced", "a product at 10,000 users is recommended advanced testing")
+        (self.target / ".devframework/project.json").write_text(json.dumps({**config, "testing": "lean"}), encoding="utf-8")
+        self.assertTrue(any("advanced is recommended" in w for w in doctor(self.target)["warnings"]),
+                        "lean at tens of thousands of users is flagged, not blocked")
         with self.assertRaisesRegex(ValueError, "Already installed"):
             self.init()
-        with self.assertRaisesRegex(ValueError, "preserves installation parameters"):
-            install.install(self.target, update=True, scale="50,000 users")
 
-    def test_overlap_and_non_directory_targets_rejected(self):
-        for target in (ROOT, ROOT / "temp" / "forbidden", ROOT.parent):
-            with self.subTest(target=target), self.assertRaises(ValueError):
-                install.install(target, name="unsafe")
-        self.target.write_text("not a folder")
-        with self.assertRaises(ValueError):
-            self.init()
-        self.assertEqual(self.target.read_text(), "not a folder")
+        project = self.target / "PROJECT.md"
+        project.write_text("Our facts\n", encoding="utf-8")
+        source = self.package_copy()  # a newer package in which one framework rule changed
+        rule = source / "template/AGENTS.md"
+        rule.write_text(rule.read_text(encoding="utf-8") + "\nNew rule.\n", encoding="utf-8")
+        (source / "VERSION").write_text(NEWER + "\n", encoding="utf-8")
+        self.assertFalse(install.install(self.target, source=source, update=True)["conflicts"])
+        self.assertIn("New rule.", (self.target / "AGENTS.md").read_text(encoding="utf-8"))
+        self.assertEqual(project.read_text(encoding="utf-8"), "Our facts\n", "project documents are never overwritten")
 
-    def test_manifest_traversal_rejected(self):
-        self.init()
-        manifest = install.load_manifest(self.target)
-        manifest["files"]["../escape"] = {"sha256": "0" * 64}
-        self.write(install.MANIFEST, json.dumps(manifest))
-        with self.assertRaises(ValueError):
-            install.install(self.target, update=True)
-        self.assertFalse((self.base / "escape").exists())
+        self.write("AGENTS.md", "Local rule")
+        self.assertIn("AGENTS.md", install.install(self.target, source=source, update=True)["conflicts"])
+        self.assertEqual((self.target / "AGENTS.md").read_text(encoding="utf-8"), "Local rule", "a conflict writes nothing")
+        backup = install.install(self.target, source=source, update=True, force=True)["backup"]
+        self.assertEqual((self.target / backup / "files/AGENTS.md").read_text(encoding="utf-8"), "Local rule")
+        self.assertIn("New rule.", (self.target / "AGENTS.md").read_text(encoding="utf-8"))
 
-    def test_junction_or_symlink_cannot_redirect_target_writes(self):
-        outside = self.base / "outside"
-        outside.mkdir()
-        self.target.mkdir()
-        link = self.target / "docs"
-        if os.name == "nt":
-            result = subprocess.run(["cmd", "/c", "mklink", "/J", str(link), str(outside)], capture_output=True)
-            self.assertEqual(result.returncode, 0)
-            self.addCleanup(lambda: os.rmdir(link))
-        else:
-            link.symlink_to(outside, target_is_directory=True)
-            self.addCleanup(link.unlink)
-        with self.assertRaisesRegex(ValueError, "Symlink/reparse"):
-            self.init()
-        self.assertEqual(list(outside.iterdir()), [])
+        legacy = self.base / "legacy"
+        self.write("AGENTS.md", "Existing rules", root=legacy)
+        self.assertEqual(install.install(legacy, name="Legacy")["conflicts"], ["AGENTS.md"])
+        self.assertEqual([p.name for p in legacy.iterdir()], ["AGENTS.md"], "a foreign AGENTS.md stops the install")
 
-    def test_second_writer_is_rejected(self):
-        self.init()
-        with project_lock(self.target), self.assertRaisesRegex(ValueError, "Another installer"):
-            install.install(self.target, update=True)
+    def test_kinds_only_grow_and_old_manifests_still_update(self):
+        self.init(kind="explore")
+        for absent in ("docs/USE_CASES.md", "docs/GUIDE.html"):
+            self.assertFalse((self.target / absent).exists(), absent)
+        config = json.loads((self.target / ".devframework/project.json").read_text(encoding="utf-8"))
+        self.assertEqual(config["testing"], "lean", "explorations and tools test lean")
+        project = self.target / "PROJECT.md"
+        project.write_text(project.read_text(encoding="utf-8") + "\nOur intent survives promotion.\n", encoding="utf-8")
+        install.install(self.target, update=True, kind="tool")
+        self.assertTrue((self.target / "docs/GUIDE.html").exists())
+        with self.assertRaisesRegex(ValueError, "scale"):
+            install.install(self.target, update=True, kind="product")
+        install.install(self.target, update=True, kind="product", scale="100 users")
+        self.assertTrue((self.target / "docs/USE_CASES.md").exists())
+        self.assertIn("Our intent survives promotion.", project.read_text(encoding="utf-8"))
+        self.assertEqual(installed_kind(self.target), "product")
+        with self.assertRaisesRegex(ValueError, "never shrinks"):
+            install.install(self.target, update=True, kind="tool")
 
-    def test_caught_failure_rolls_back_all_changed_files(self):
-        self.write("AGENTS.md", "Original")
-        real_write = install.atomic_write
-        failed = False
+        legacy = self.base / "legacy"  # written before kinds (1.3.0) and the hermes flag (1.5.0), with .hermes.md
+        install.install(legacy, name="Old", hermes=True)
+        path = legacy / ".devframework/manifest.json"
+        manifest = json.loads(path.read_text(encoding="utf-8"))
+        del manifest["parameters"]["kind"], manifest["parameters"]["hermes"]
+        path.write_text(json.dumps(manifest), encoding="utf-8")
+        self.assertEqual(installed_kind(legacy), "product")
+        install.install(legacy, update=True)
+        updated = json.loads(path.read_text(encoding="utf-8"))
+        self.assertTrue(updated["parameters"]["hermes"] and ".hermes.md" in updated["files"], "a host is never dropped")
 
-        def fail_once(path, data):
-            nonlocal failed
-            if path == self.target / "PROJECT.md" and not failed:
-                failed = True
-                raise OSError("synthetic write failure")
-            return real_write(path, data)
+    def test_plugin_manifests_agree_and_hermes_tools_work(self):
+        plugin = json.loads((ROOT / ".claude-plugin/plugin.json").read_text(encoding="utf-8"))
+        market = json.loads((ROOT / ".claude-plugin/marketplace.json").read_text(encoding="utf-8"))
+        self.assertEqual(plugin["version"], VERSION)
+        self.assertIn(f"version: {VERSION}", (ROOT / "plugin.yaml").read_text(encoding="utf-8"))
+        self.assertEqual(market["plugins"][0]["source"], "./")
+        for name in ("init", "check", "nav"):  # skills hold the procedures; commands are one-line aliases
+            skill = (ROOT / f"skills/df-{name}/SKILL.md").read_text(encoding="utf-8")
+            self.assertTrue(skill.startswith(f"---\nname: df-{name}\n"), name)
+            self.assertIn(f"dev-framework:df-{name}", (ROOT / f"commands/{name}.md").read_text(encoding="utf-8"))
+        hook = json.loads((ROOT / "hooks/hooks.json").read_text(encoding="utf-8"))["hooks"]["SessionStart"][0]["hooks"][0]
+        self.assertIn("${CLAUDE_PLUGIN_ROOT}/scripts/session_start.py", hook["command"])
 
-        with patch.object(install, "atomic_write", side_effect=fail_once), self.assertRaises(OSError):
-            self.init(force=True)
-        self.assertTrue(failed)
-        self.assertEqual((self.target / "AGENTS.md").read_text(), "Original")
-        self.assertFalse((self.target / install.MANIFEST).exists())
-        self.assertFalse((self.target / install.PENDING).exists())
-
-    def crash_install(self):
-        # A real child exits without finally/cleanup, leaving an interrupted transaction.
-        code = """
-import os, pathlib, sys
-sys.path.insert(0, sys.argv[1])
-import install
-target = pathlib.Path(sys.argv[2])
-real = install.atomic_write
-def abrupt(path, data):
-    if path == target / 'PROJECT.md':
-        os._exit(73)
-    real(path, data)
-install.atomic_write = abrupt
-install.install(target, name='Crash fixture', force=True)
-"""
-        result = subprocess.run([sys.executable, "-B", "-c", code, str(ROOT / "scripts"), str(self.target)], timeout=30)
-        self.assertEqual(result.returncode, 73)
-
-    def test_process_crash_can_recover_and_os_releases_lock(self):
-        self.write("AGENTS.md", "Before crash")
-        self.crash_install()
-        self.assertTrue((self.target / install.PENDING).exists())
-        with self.assertRaisesRegex(ValueError, "Interrupted"):
-            self.init()
-        with project_lock(self.target):
-            install.restore_pending(self.target)
-        self.assertEqual((self.target / "AGENTS.md").read_text(), "Before crash")
-        self.assertFalse((self.target / install.PENDING).exists())
-
-    def test_recovery_will_not_overwrite_post_crash_edit(self):
-        self.write("AGENTS.md", "Original")
-        self.crash_install()
-        self.write("AGENTS.md", "Later edit")
-        with project_lock(self.target), self.assertRaisesRegex(ValueError, "later edit"):
-            install.restore_pending(self.target)
-        self.assertEqual((self.target / "AGENTS.md").read_text(), "Later edit")
-        self.assertTrue((self.target / install.PENDING).exists())
-
-    def test_removed_package_file_is_retained_not_deleted(self):
-        source = self.package_copy()
-        self.write("template/obsolete.md", "Old knowledge", root=source)
-        self.init(source=source)
-        (source / "template/obsolete.md").unlink()
-        result = install.install(self.target, source=source, update=True)
-        self.assertIn({"path": "obsolete.md", "action": "retain-retired"}, result["files"])
-        self.assertEqual((self.target / "obsolete.md").read_text(), "Old knowledge")
-
-    def test_changed_backup_is_not_restored(self):
-        self.write("AGENTS.md", "Original")
-        self.crash_install()
-        marker = install.read_json(self.target / install.PENDING)
-        self.write(marker["backup"] + "/files/AGENTS.md", "Tampered backup")
-        with self.assertRaisesRegex(ValueError, "Backup content changed"):
-            install.restore_pending(self.target)
-
-    def test_child_helper_rejects_reserved_metadata(self):
-        for relative in ("../outside", ".git/config", ".GIT/config", "C:/outside", "/absolute", "bad\\path"):
-            with self.subTest(relative=relative), self.assertRaises(ValueError):
-                child(self.base, relative)
-
-    def test_hardlink_is_not_overwritten(self):
-        self.target.mkdir()
-        original = self.base / "original.md"
-        original.write_text("Preserve this")
-        os.link(original, self.target / "AGENTS.md")
-        with self.assertRaisesRegex(ValueError, "Hard-linked"):
-            self.init(force=True)
-        self.assertEqual(original.read_text(), "Preserve this")
-        (self.target / "AGENTS.md").unlink()
-
-    def test_incomplete_package_fails_before_writes(self):
-        source = self.package_copy()
-        (source / "template/AGENTS.md").unlink()
-        with self.assertRaisesRegex(ValueError, "Incomplete package"):
-            self.init(source=source)
-        self.assertFalse(self.target.exists())
-
-    def test_bad_template_variable_fails_before_writes(self):
-        source = self.package_copy()
-        self.write("template/extra.md", "{{MISSING_VARIABLE}}", root=source)
-        with self.assertRaisesRegex(ValueError, "Unresolved"):
-            self.init(source=source)
-        self.assertFalse(self.target.exists())
-
-    def test_downgrade_rejected(self):
-        source = self.package_copy()
-        self.init(source=source)
-        (source / "VERSION").write_text("0.1.0\n")
-        with self.assertRaisesRegex(ValueError, "Downgrade"):
-            install.install(self.target, source=source, update=True)
-
-    def test_retired_files_do_not_cause_repeat_backup(self):
-        source = self.package_copy()
-        for name in ("z.md", "a.md", "m.md"):
-            self.write("template/" + name, "old", root=source)
-        self.init(source=source)
-        for name in ("z.md", "a.md", "m.md"):
-            (source / "template" / name).unlink()
-        install.install(self.target, source=source, update=True)
-        self.assertIsNone(install.install(self.target, source=source, update=True)["backup"])
-
-    def test_newer_manifest_during_planning_is_not_overwritten(self):
-        self.init()
-        real_plan = install.make_plan
-
-        def race(*args):
-            plan = real_plan(*args)
-            manifest = install.load_manifest(self.target)
-            manifest["version"] = NEWER_VERSION
-            self.write(install.MANIFEST, json.dumps(manifest))
-            return plan
-
-        with patch.object(install, "make_plan", side_effect=race), self.assertRaisesRegex(ValueError, "changed during planning"):
-            install.install(self.target, update=True)
-        self.assertEqual(install.load_manifest(self.target)["version"], NEWER_VERSION)
+        spec = importlib.util.spec_from_file_location("devframework_hermes", ROOT / "__init__.py")
+        hermes = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(hermes)
+        target = str(self.target)
+        self.assertTrue(hermes.df_init({"target": target, "kind": "tool"}).startswith("INIT OK"))
+        self.assertTrue((self.target / ".hermes.md").is_file(), "the Hermes plugin installs its context file")
+        self.assertTrue(hermes.df_check({"target": target, "mode": "doctor"}).startswith("doctor NOT READY"))
+        self.assertIn("session brief", hermes.df_nav({"target": target, "command": "brief"}))

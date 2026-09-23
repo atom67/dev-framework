@@ -54,20 +54,15 @@ point of the rule is that the arithmetic is real.
 
 Preview first; it must create no target files:
 
-```powershell
-.\install.ps1 -Target <path> -ProjectName "<name>" -Profile generic -ScaleTarget "<figure>" -DryRun
-.\install.ps1 -Target <path> -ProjectName "<name>" -Profile generic -ScaleTarget "<figure>"
-```
-
 Profiles: `generic` (default), `personal-desktop`, `service`. Ask the operator if the
-target is a personal desktop app or a service; do not guess. Equivalent:
+target is a personal desktop app or a service; do not guess:
 
 ```text
 python scripts/install.py --target <path> --name "<name>" --profile generic --scale "<figure>" --dry-run
 ```
 
-Verify this package first with `.\install.ps1 -SelfTest` (same as `python -B scripts/verify.py`).
-Run install without `-Force`. Existing files are then kept or conflict; read that report,
+Verify this package first with `python -B scripts/verify.py`.
+Run install without `--force`. Existing files are then kept or conflict; read that report,
 and merge by hand rather than re-running with `-Force`.
 
 Do not copy `template/` by hand. The installer computes the scale arithmetic, writes
@@ -137,7 +132,7 @@ gap explicitly as unknown. A named gap gets filled; a plausible guess never gets
 
 ## 6. Verify before claiming
 
-- `install.ps1 -SelfTest` / `python -B scripts/verify.py` passes in **this** package.
+- `python -B scripts/verify.py` passes in **this** package.
 - In the **target**: `docs/USE_CASES.md`, `docs/USE_CASE_TEMPLATE.md` and
   `docs/USE_CASES_SLICE_TEMPLATE.md` exist.
 - `python .devframework/check.py doctor --structural` in the target is green on the

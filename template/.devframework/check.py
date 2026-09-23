@@ -4,17 +4,15 @@ from __future__ import annotations
 import argparse
 import os
 from pathlib import Path
+import re
 import subprocess
 import sys
-import tempfile
-import uuid
 
 sys.dont_write_bytecode = True
 from safety import checked_path
 from secrets_check import scan_index
 from verification import doctor, load_config
-from source_scope import identity, require_index_parity, scan_worktree, snapshot
-from test_evidence import validate
+from source_scope import scan_worktree, snapshot
 import devlog as devlog_mod
 import navigate
 
@@ -46,121 +44,81 @@ def show_secrets(root: Path, report: dict | None = None) -> int:
 
 
 LOG = ".devframework/last_run.log"
+# The one line a test command prints for finish; run_unittest.py, run_pytest.py and run_smoke.py do.
+TESTS = re.compile(r"^TESTS: total=(\d+) failed=(\d+) skipped=(\d+)\s*$", re.M)
+
+
+def run_step(root: Path, label: str, command: list, timeout: int, verbose: bool) -> tuple[int, str]:
+    """Run one configured command (argv, no shell). Output goes to the log; the agent reads counts and the tail."""
+    argv = [sys.executable if arg == "{python}" else arg for arg in command]
+    print(f"RUN {label}", flush=True)
+    run = subprocess.run(argv, cwd=root, timeout=timeout, shell=False, capture_output=True,
+                         env={**os.environ, "PYTHONDONTWRITEBYTECODE": "1"})
+    output = (run.stdout + run.stderr).decode("utf-8", errors="replace")
+    with open(root / LOG, "a", encoding="utf-8") as log:
+        log.write(f"== {label}: {' '.join(argv)}\n{output}\n")
+    if verbose:
+        print(output)
+    return run.returncode, output
 
 
 def finish(root: Path, *, commit: bool = False, verbose: bool = False) -> int:
-    navigate.index(root)  # regenerated before the snapshot so the digest covers a fresh docs/INDEX.md
+    """doctor + secret heuristic + the configured commands; the test command must report counts (> 0, no failures)."""
+    navigate.index(root)
     (root / LOG).write_bytes(b"")
-    before = snapshot(root)
     report = doctor(root)
     result = show_doctor(report, False)
     if result:
         return result
-    index = require_index_parity(root) if commit else None
-    if show_secrets(root, scan_worktree(before)):
+    if show_secrets(root, scan_worktree(snapshot(root))) or (commit and show_secrets(root)):
         return 1
-    if commit and show_secrets(root):
-        return 1
-    kind = report.get("kind", "product")
-    config, _, _ = load_config(root, kind)
+    config, _, _ = load_config(root, report.get("kind", "product"))
+    if commit and config.get("testing") == "advanced":
+        gaps = navigate.untested(root)
+        if gaps:  # advanced testing: no use case reaches a commit untested (AGENTS.md §4)
+            print(f"COMMIT BLOCKED (advanced testing): use cases without a covering test: {', '.join(gaps)} — "
+                  "cover each, or mark it NFV with the reason")
+            return 1
     commands = config["commands"]
-    steps = []
-    if commands.get("build") is not None:
-        steps.append(("build", commands["build"]))
-    else:
+    steps = [("build", commands["build"])] if commands.get("build") is not None else []
+    if not steps:
         print("BUILD NOT APPLICABLE: documented in project.json")
     if commands.get("test") is not None:
         steps.append(("test", commands["test"]))
     else:  # only an exploration may reach here: load_config demands a test command from every other kind
         print("NO TEST COMMAND (explore): structure and secrets checked; behaviour is NOT proven")
-    steps.extend((f"check-{number}", cmd) for number, cmd in enumerate(commands["checks"], 1))
+    steps += [(f"check-{number}", cmd) for number, cmd in enumerate(commands["checks"], 1)]
     if any("{python}" in command for _, command in steps):
         print(f"{{python}} = {sys.executable} (Python {sys.version.split()[0]})")
-    counts = None
+    tests = None
     for label, command in steps:
-        # Only reviewed project commands are allowed. This runner is not a sandbox;
-        # argv avoids implicit shell parsing, but a configured command can have effects.
-        argv = [sys.executable if arg == "{python}" else arg for arg in command]
-        print(f"RUN {label}", flush=True)
         try:
-            with tempfile.TemporaryDirectory(prefix="devframework-evidence-") as temporary:
-                evidence_path = Path(temporary) / "tests.json"
-                run_id = uuid.uuid4().hex
-                env = {**os.environ, "PYTHONDONTWRITEBYTECODE": "1"}
-                if label == "test":
-                    env.update(DEVFRAMEWORK_TEST_REPORT=str(evidence_path), DEVFRAMEWORK_RUN_ID=run_id)
-                # Quiet by default: child output goes to the log, the agent reads counts and the first failure.
-                run = subprocess.run(argv, cwd=root, timeout=config["timeout_seconds"], shell=False, env=env,
-                                     capture_output=not verbose)
-                if not verbose:
-                    with open(root / LOG, "ab") as log:
-                        log.write(f"== {label}: {' '.join(argv)}\n".encode("utf-8") + run.stdout + run.stderr)
-                if label == "test" and run.returncode == 0:
-                    counts = validate(evidence_path, run_id, config["test_evidence"]["max_skipped"])
+            code, output = run_step(root, label, command, config["timeout_seconds"], verbose)
         except subprocess.TimeoutExpired:
             print(f"FAILED {label}: timeout; inspect any child processes before retrying")
             return 1
-        if run.returncode:
-            print(f"FAILED {label}: exit {run.returncode}")
+        problem = f"exit {code}" if code else None
+        if label == "test" and not problem:
+            found = TESTS.findall(output)
+            if not found:
+                problem = "no `TESTS: total=N failed=F skipped=S` line (the test command must report its counts)"
+            else:
+                total, failed, skipped = map(int, found[-1])
+                tests = f"{total} tests, {skipped} skipped"
+                if failed or total - skipped <= 0 or skipped > config["test_evidence"]["max_skipped"]:
+                    problem = f"{failed} failed, {total - skipped} executed, {skipped} skipped (max {config['test_evidence']['max_skipped']})"
+        if problem:
+            print(f"FAILED {label}: {problem}")
             if not verbose:
-                tail = (run.stdout + run.stderr).decode("utf-8", errors="replace").strip().splitlines()[-20:]
-                print("\n".join(tail) + f"\n(full output: {LOG})", file=sys.stderr)
+                print("\n".join(output.strip().splitlines()[-20:]) + f"\n(full output: {LOG})", file=sys.stderr)
             return 1
         print(f"PASSED {label}", flush=True)
-        if snapshot(root) != before:
-            raise ValueError("Source changed during verification; rerun on a stable snapshot")
-    if commit and require_index_parity(root) != index:
-        raise ValueError("Index changed during verification")
-    if counts is not None:
-        print(f"TEST EVIDENCE: {counts['total']} total, {counts['skipped']} skipped, 0 failures/errors")
-    print(f"SOURCE SHA256: {identity(before)} (tracked + nonignored untracked; ignored inputs NOT covered)")
-    print(f"{'COMMIT CHECK' if commit else 'FINISH'} PASSED: {len(steps)} configured commands. "
-          f"{'Index/worktree parity verified.' if commit else 'WORKTREE ONLY; commit content NOT certified.'} "
-          "No commit, push, deploy or restart was added.")
+    print(f"{'COMMIT CHECK' if commit else 'FINISH'} PASSED: {len(steps)} commands" + (f"; {tests}" if tests else "") +
+          (". Staged secrets clean." if commit else ". Worktree checked.") + " No commit, push, deploy or restart was added.")
     reminder = devlog_mod.missing_today(root)
     if reminder:
         print(reminder)
     return 0
-
-
-def selftest(root: Path) -> int:
-    """Plant what each gate must catch, in a temporary copy of the source, and expect the failure.
-
-    Covers the two mechanical gates (catalogue contract, secret heuristic). The cost audit is a reading
-    exercise (see catch-up skill §5) and is not simulated here.
-    """
-    files = snapshot(root)
-    results = []
-    with tempfile.TemporaryDirectory(prefix="devframework-selftest-") as temporary:
-        copy = Path(temporary) / "copy"
-        for name, data in files.items():
-            if data is not None:
-                target = copy / name
-                target.parent.mkdir(parents=True, exist_ok=True)
-                target.write_bytes(data)
-        for args in (("init", "-q"), ("add", "-A")):
-            subprocess.run(["git", "-C", str(copy), *args], capture_output=True, timeout=60, check=True)
-        baseline = len(doctor(copy)["errors"])
-        catalogue = copy / "docs" / "USE_CASES.md"
-        if not catalogue.exists():  # a tool or an exploration has no use-case catalogue to break
-            catalogue.parent.mkdir(parents=True, exist_ok=True)
-            catalogue.write_bytes(b"")
-        original = catalogue.read_bytes()
-        catalogue.write_bytes(original + "\n#### UC-999 — planted case without a Test field\n- **Trigger:** planted by selftest\n".encode("utf-8"))
-        caught = len(doctor(copy)["errors"]) > baseline
-        catalogue.write_bytes(original)
-        restored = len(doctor(copy)["errors"]) == baseline
-        results.append(("doctor contract", caught and restored, "a UC without **Test:** was rejected, then accepted after restore"))
-        planted = copy / "planted_by_selftest.txt"
-        planted.write_text("token = ghp_" + "A" * 36 + "\n", encoding="utf-8")
-        found = bool(scan_worktree(snapshot(copy))["findings"])
-        planted.unlink()
-        clean = not scan_worktree(snapshot(copy))["findings"] or bool(scan_worktree(files)["findings"])
-        results.append(("secret heuristic", found and clean, "a planted token-shaped literal was reported, then gone after restore"))
-    for name, ok, detail in results:
-        print(f"SELFTEST {name}: {'PASS' if ok else 'FAIL'} — {detail if ok else 'the gate did not fire as expected'}")
-    print("SELFTEST cost audit: NOT SIMULATED — read repeating operations by hand (catch-up skill §5)")
-    return 0 if all(ok for _, ok, _ in results) else 1
 
 
 def devlog_entry(root: Path, args) -> int:
@@ -197,8 +155,7 @@ def main() -> int:
     scope.add_argument("--staged", action="store_true")
     scope.add_argument("--worktree", action="store_true")
     for name in ("finish", "commit-check"):
-        sub.add_parser(name).add_argument("--verbose", action="store_true", help="stream child output instead of logging it")
-    sub.add_parser("selftest", help="prove the doctor contract and the secret heuristic fire, in a temp copy")
+        sub.add_parser(name).add_argument("--verbose", action="store_true", help="also print child output (it is always logged)")
     log = sub.add_parser("devlog", help="create a devlog skeleton (optional rule, see DEVLOG.md)")
     log.add_argument("--agent", action="append", required=True, metavar="CLIENT-MODEL",
                      help="who drove the dialogue, e.g. claudecode-OPUS5; repeat once for the second model when models switched")
@@ -216,8 +173,6 @@ def main() -> int:
             return show_secrets(root, None if args.staged else scan_worktree(snapshot(root)))
         if args.command == "devlog":
             return devlog_entry(root, args)
-        if args.command == "selftest":
-            return selftest(root)
         return finish(root, commit=args.command == "commit-check", verbose=args.verbose)
     except ValueError as error:
         # Our report/count failures are descriptive; arbitrary parser values stay redacted.

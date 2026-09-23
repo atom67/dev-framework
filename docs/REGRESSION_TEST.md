@@ -1,6 +1,6 @@
 # Regression coverage — DEV Framework 0.2
 
-Command: `python -B scripts/verify.py` (also `install.ps1 -SelfTest`).
+Command: `python -B scripts/verify.py`.
 All fixtures are temporary projects, with no real tokens, user databases or remote writes.
 
 | Risk | Automated evidence | Boundary not claimed |
@@ -9,13 +9,12 @@ All fixtures are temporary projects, with no real tokens, user databases or remo
 | Knowledge disappears at provider switch | local lessons/patterns, each profile, adapter import/link tests | actual model sessions/accounts |
 | Overwrite existing project | legacy conflict, forced backup, project-owned preservation, no-op update | semantic merge of custom instructions |
 | Redirect writes outside target | overlap, traversal/case, Windows junction or POSIX symlink, hardlink tests | hostile concurrent path swapping |
-| Interrupted update damages data | injected write failure, real child os._exit, journal/hash recovery, later-edit refusal | power-cut/filesystem durability |
+| Update damages user work | edited framework file conflicts, --force backs it up, project documents never overwritten | three-way merge; power-cut durability |
 | Concurrent installer or stale plan | OS lock rejection and newer-manifest race test | coordination with arbitrary editors |
 | Doctor false green | missing knowledge/config, placeholders, links, duplicate IDs, padded SET→UC ranges, missing Test/traceability rows, fenced imports, incomplete manifest | arbitrary code/schema semantic drift; which-store claims in Flow |
 | Secret in index but not worktree | staged/worktree mismatch both ways, camelcase, UTF-16, redacted CLI, size limit | exhaustive credential detection, history/artifacts |
 | Finish hides failure | missing commands, nonzero build/test/check, explicit N/A build, injected timeout | detached descendant cleanup; real app test quality |
-| Exit 0 but no tests ran | missing/stale/malformed/count-invalid evidence, zero/all-skipped suites, skip budget | relevant coverage and honest custom runner implementation |
-| Tested tree differs from commit | parity mismatch, assume-unchanged, no implicit staging, changed source during build | ignored inputs and malicious edit/revert races |
+| Exit 0 but no tests ran | missing TESTS line, zero discovered, a failing module under --jobs auto | relevant coverage and honest custom runner implementation |
 | Common secret syntax missed | dotenv/YAML/C# cases, safe OAuth metadata, actual Git blobs, unstaged secrets | raw/multiline/encoded/unknown credentials |
 | Transfer map gives false completeness | 24 unique IDs, five source fingerprints, local destinations; explicit exclusions | semantic completeness of all Main OS history |
 | Handoff fixture has invented evidence | actual old-code 2/3 failures then fixed 3/3 pass; no commits, snapshot digest | live provider behaviour, tested separately |

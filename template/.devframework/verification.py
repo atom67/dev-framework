@@ -10,7 +10,7 @@ from urllib.parse import unquote, urlsplit
 from safety import checked_path, child
 
 REQUIRED = (
-    "AGENTS.md", "CLAUDE.md", ".hermes.md", "PROJECT.md", "scripts/run_tests.sh", "docs/REQUIREMENTS.md", "docs/BACKLOG.md",
+    "AGENTS.md", "CLAUDE.md", "PROJECT.md", "scripts/run_tests.sh", "docs/REQUIREMENTS.md", "docs/BACKLOG.md",
     "docs/ARCHITECTURE.md", "docs/KNOWN_ERRORS.md", "docs/REGRESSION_TEST.md", "docs/RELEASE.md",
     "docs/CHECKLIST_TEMPLATE.md", "docs/USE_CASES.md", "docs/USE_CASE_TEMPLATE.md",
     "docs/USE_CASES_SLICE_TEMPLATE.md", "docs/INVARIANTS.md", ".devframework/manifest.json", ".devframework/project.json",
@@ -19,7 +19,7 @@ REQUIRED = (
     ".devframework/DEVLOG.md", ".devframework/devlog.py",
     ".devframework/check.py", ".devframework/navigate.py", ".devframework/hostcheck.py", ".devframework/safety.py", ".devframework/verification.py",
     ".devframework/secrets_check.py", ".devframework/patterns/README.md",
-    ".devframework/source_scope.py", ".devframework/test_evidence.py", ".devframework/run_unittest.py",
+    ".devframework/source_scope.py", ".devframework/run_unittest.py",
     *[f".devframework/patterns/{name}.md" for name in
       ("outbox", "configuration", "crash-recovery", "stale-work", "evolution",
        "entry-point-invariants", "bounded-performance", "sync-semantics")],
@@ -39,6 +39,7 @@ def valid_command(value: object) -> bool:
     return isinstance(value, list) and bool(value) and all(isinstance(v, str) and v.strip() for v in value)
 
 
+ADVANCED_FROM = 10_000  # users: from tens of thousands advanced testing is recommended (AGENTS.md §4)
 KINDS = ("product", "tool", "explore")  # what is being built; the profile says where and how it runs
 PRODUCT_ONLY = frozenset({
     "docs/REQUIREMENTS.md", "docs/BACKLOG.md", "docs/ARCHITECTURE.md", "docs/REGRESSION_TEST.md", "docs/RELEASE.md",
@@ -51,7 +52,7 @@ def required(kind: str = "product") -> tuple[str, ...]:
     return tuple(n for n in REQUIRED if n not in KIND_EXCLUDES[kind]) + ((GUIDE,) if kind == "tool" else ())
 
 
-WIP = re.compile(r"<!--\s*under-construction:\s*(.*?)\s*-->", re.S)
+WIP = re.compile(r"^<!--\s*under-construction:\s*(.*?)\s*-->", re.S | re.M)  # its own line: a quoted example is not a mark
 
 
 def under_construction(relative: str, text: str) -> tuple[str, date | None] | None:
@@ -71,6 +72,20 @@ def under_construction(relative: str, text: str) -> tuple[str, date | None] | No
         return match[1], None
 
 
+def testing_note(root: Path) -> str | None:
+    """A product installed for tens of thousands of users but set to lean: say so; the operator decides."""
+    try:
+        params = json.loads(child(root, ".devframework/manifest.json").read_text(encoding="utf-8"))["parameters"]
+        testing = json.loads(child(root, ".devframework/project.json").read_text(encoding="utf-8")).get("testing", "lean")
+    except (ValueError, OSError, KeyError, TypeError):
+        return None
+    count = params.get("count") if isinstance(params, dict) else None
+    if params.get("kind", "product") == "product" and testing == "lean" and isinstance(count, int) and count >= ADVANCED_FROM:
+        return (f"testing is lean at a scale of {count:,}: advanced is recommended from {ADVANCED_FROM:,} users "
+                "(AGENTS.md §4) — the operator decides, then set `testing` in project.json")
+    return None
+
+
 def installed_kind(root: Path) -> str:
     """The kind recorded at installation. Manifests written before 1.3.0 carry none: they mean product."""
     try:
@@ -88,6 +103,8 @@ def load_config(root: Path, kind: str = "product") -> tuple[dict, list[str], lis
     profile = config.get("profile")
     if profile not in ("generic", "personal-desktop", "service"):
         errors.append("Invalid project profile")
+    if config.get("testing", "lean") not in ("lean", "advanced"):
+        errors.append("testing must be lean or advanced (AGENTS.md §4)")
     timeout = config.get("timeout_seconds")
     if type(timeout) is not int or not 1 <= timeout <= 86400:
         errors.append("timeout_seconds must be an integer from 1 to 86400")
@@ -102,8 +119,8 @@ def load_config(root: Path, kind: str = "product") -> tuple[dict, list[str], lis
             reason = config.get("build_not_applicable")
             if name != "build" or not isinstance(reason, str) or not reason.strip():
                 hint = (" or a build_not_applicable reason" if name == "build" else
-                        ' as an argv that writes counted evidence, e.g. ["{python}", "-B", ".devframework/run_unittest.py", "--start", "tests", "--jobs", "auto"]'
-                        " (a bare `python -m unittest` or `pytest` passes doctor but fails finish: no counted evidence)")
+                        ' as an argv that prints a TESTS line, e.g. ["{python}", "-B", ".devframework/run_unittest.py", "--start", "tests", "--jobs", "auto"]'
+                        " (a bare `python -m unittest` or `pytest` passes doctor but fails finish: no TESTS line)")
                 setup.append(f"Configure {name} command" + hint)
         elif not valid_command(value):
             errors.append(f"{name} must be a nonempty argument array, not a shell string")
@@ -277,8 +294,6 @@ def doctor(root: Path) -> dict:
             errors.append(str(error))
     if errors:
         return {"errors": errors, "setup": setup, "warnings": warnings, "ready": False}
-    if child(root, ".devframework/pending.json").exists():
-        errors.append("Interrupted installation; recover before using this package")
     try:
         manifest = json.loads(child(root, ".devframework/manifest.json").read_text(encoding="utf-8"))
         if not isinstance(manifest, dict) or type(manifest.get("format")) is not int or manifest["format"] != 1 or not isinstance(manifest.get("files"), dict):
@@ -294,6 +309,9 @@ def doctor(root: Path) -> dict:
         errors.append("Unreadable installation manifest")
     try:
         config, config_errors, config_setup = load_config(root, kind)
+        note = testing_note(root)
+        if note:
+            warnings.append("TESTING: " + note)
         errors.extend(config_errors)
         setup.extend(config_setup)
     except (ValueError, OSError):

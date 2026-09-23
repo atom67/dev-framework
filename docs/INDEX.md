@@ -3,15 +3,14 @@
 ## UC
 | id | title | test |
 |---|---|---|
-| UC-001 | Preview an install or update | covered — `tests/test_install.py`, `tests/test_package.py` preview cases. |
-| UC-002 | Seed a project | covered — install tests; doctor on a fresh scaffold. |
-| UC-003 | Update without overwriting project documents | covered — `tests/test_install.py` preserve-project. |
-| UC-004 | Recover an interrupted install | covered — interruption and later-edit refusal tests. |
-| UC-005 | Doctor: scaffold vs ready | covered — `tests/test_checks.py`. |
-| UC-006 | Finish with counted tests | covered — `tests/test_evidence_scope.py`. |
-| UC-007 | Commit-check reads the index | covered — `tests/test_checks.py`, `tests/test_evidence_scope.py`. |
-| UC-008 | Write and check a value path | covered — `test_use_case_*` in `tests/test_checks.py`. |
-| UC-009 | Devlog skeleton at finalization (optional) | covered — `tests/test_devlog.py`. |
+| UC-001 | Preview an install or update | covered — `tests/test_install.py`. |
+| UC-002 | Seed a project | covered — `tests/test_install.py`. |
+| UC-003 | Update without overwriting project documents | covered — `tests/test_install.py`. |
+| UC-005 | Doctor: scaffold vs ready | covered — `tests/test_gates.py`. |
+| UC-006 | Finish with counted tests | covered — `tests/test_gates.py`. |
+| UC-007 | Commit-check scans what would be committed | covered — `tests/test_gates.py`. |
+| UC-008 | Write and check a value path | covered — `tests/test_gates.py`. |
+| UC-009 | Devlog skeleton at finalization (optional) | covered — `tests/test_agent.py`. |
 
 ## KE
 | id | title | status |

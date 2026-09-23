@@ -13,7 +13,8 @@ documentation foundation, plus the maintainers of this package.
 Python 3.10+, standard library only — no runtime dependencies, by rule. Delivered three ways
 from one source: `template/` copied by `scripts/install.py`, skills under `skills/` for any
 host, and host adapters (`plugin.yaml` + `__init__.py` for Hermes, `.claude-plugin/` +
-`commands/` + `hooks/` for Claude Code). One `VERSION` covers all of them.
+`hooks/` for Claude Code). `skills/df-init|df-check|df-nav` hold the procedures; `commands/` are one-line aliases
+kept for one release (decision D1, 2026-09-23). One `VERSION` covers all of them.
 
 **This repository runs on the framework it ships.** Its own `.devframework/` is installed, not
 authored: it is generated from `template/` and is git-ignored, so the two copies cannot drift.
@@ -31,8 +32,8 @@ The snapshot is the working tree, so an uncommitted change to `template/` is tes
 
 - `template/` — **the product being authored**, not this repository's live profile: the
   documents and `.devframework/*.py` gates that get copied into a user's project.
-- `scripts/` — `install.py` (copy/update/recover with manifest and backups), `verify.py`
-  (the one local/CI command), `claude_session_start.py` (Claude Code SessionStart hook).
+- `scripts/` — `install.py` (copy/update with manifest and backups), `verify.py`
+  (the one local/CI command), `session_start.py` (session-start hook, host-neutral; Claude Code today).
 - `skills/`, `commands/`, `hooks/`, `.claude-plugin/`, `plugin.yaml`, `__init__.py` — host
   adapters. **Adapters never hold logic**; they call the same scripts.
 - `tests/` — package tests (unittest, `tests/common.py` builds isolated fixtures).

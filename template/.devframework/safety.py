@@ -2,7 +2,6 @@
 from __future__ import annotations
 
 import hashlib
-from contextlib import contextmanager
 import os
 from pathlib import Path, PurePosixPath
 import stat
@@ -54,40 +53,10 @@ def disjoint(source: Path, target: Path) -> None:
         raise ValueError("Target is not a directory")
 
 
-@contextmanager
-def project_lock(root: Path):
-    """OS lock is released on process death. Keep the inode to avoid unlink races."""
-    path = child(root, ".devframework/install.lock")
-    path.parent.mkdir(parents=True, exist_ok=True)
-    with path.open("a+b") as handle:
-        if path.stat().st_size == 0:
-            handle.write(b"0")
-            handle.flush()
-        handle.seek(0)
-        try:
-            if os.name == "nt":
-                import msvcrt
-                msvcrt.locking(handle.fileno(), msvcrt.LK_NBLCK, 1)
-            else:
-                import fcntl
-                fcntl.flock(handle, fcntl.LOCK_EX | fcntl.LOCK_NB)
-        except OSError as error:
-            raise ValueError("Another installer/recovery owns this project") from error
-        try:
-            yield
-        finally:
-            handle.seek(0)
-            if os.name == "nt":
-                msvcrt.locking(handle.fileno(), msvcrt.LK_UNLCK, 1)
-            else:
-                fcntl.flock(handle, fcntl.LOCK_UN)
-
-
 def atomic_write(path: Path, data: bytes) -> None:
     checked_path(path)
     path.parent.mkdir(parents=True, exist_ok=True)
-    # Same-directory replacement: readers see one complete file. Multi-file recovery
-    # belongs to the install journal; power-loss durability depends on the filesystem.
+    # Same-directory replacement: readers see one complete file; power-loss durability depends on the filesystem.
     descriptor, temporary = tempfile.mkstemp(prefix=".devframework-write-", dir=path.parent)
     try:
         with os.fdopen(descriptor, "wb") as handle:
