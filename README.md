@@ -219,8 +219,9 @@ Prefer per-project installs? `claude plugin install dev-framework@dev-framework 
 
 **v1.6.0 (beta; Hermes + Claude Code).** On Hermes, the plugin runs of three scenarios used 0.33–0.55× the tool calls and
 0.30–0.47× the input tokens of the same scenarios run with skills only, with equal or better documentation quality.
-**Caveat:** the two variants ran on different models (skills on grok-4.6, plugin on gpt-5.6-terra), so the ratio mixes
-the plugin's effect with the model's; a same-model re-run is planned, and none of it was measured in Claude Code yet.
+Models: the plugin runs and the hardest scenario (S3, documenting existing code) ran on gpt-5.6-terra in both
+variants — there the plugin used 0.51–0.53× the API calls and 0.33–0.41× the tool calls. The two simple scenarios
+(S1, S2) ran skills on grok-4.6, a model of comparable capability; they are counted together. Not yet measured in Claude Code.
 Host-rule conflicts are surfaced and settled by the operator instead of silently fighting the framework. Evidence: [evals/RESULTS.md](evals/RESULTS.md) and the
 per-run reports in [evals/runs/](evals/runs/).
 This repository runs on its own framework, and that is how v1.2.0 was found: the finish gate took 6m15s

@@ -172,7 +172,7 @@ any of the above.
 - [ ] GUIDE split of the templates
 - [x] Public repository name and the moment of the first push
 - [x] Release discipline for Claude Code: bump VERSION + both manifests, then `claude plugin tag` (consumers only see a change when the version moves)
-- [x] README headline is confounded: skills baseline ran on grok-4.6, plugin on gpt-5.6-terra (found by the installer agent 2026-09-23) — state it next to 0.33–0.55x, then re-run both variants on one model
+- [x] README headline is confounded: skills baseline ran on grok-4.6, plugin on gpt-5.6-terra (found by the installer agent 2026-09-23) — resolved 2026-09-23 by the operator: no re-run (comparable models, S1/S2 are simple); README leads with the same-model S3 numbers (0.51–0.53x API calls, 0.33–0.41x tool calls)
 - [x] README 'Plugin or just the framework': the framework works without the plugin (AGENTS.md already says run the brief first); the plugin adds the automatic brief, short commands, one-command update
 - [x] Hook and commands walk up to any parent with `.devframework/` — stop at the first git root, so a framework installed in `D:\DEV` never leaks into every sub-project
 - [x] Test finding 2026-09-23: pytest-style tests are invisible to run_unittest (vibe-coders mostly write pytest) — decide: stdlib junit-xml adapter run_pytest.py, or document only (done in 1.2.3) → run_pytest.py shipped in 1.2.4
