@@ -72,14 +72,27 @@ and the verdict against the ≤ 0.7× target, in plain language.
       `commands/{init,check,nav}.md`, `hooks/hooks.json` → `scripts/claude_session_start.py` (injects `navigate.py brief`
       when the cwd or a parent holds `.devframework/`, silent otherwise); the existing `skills/df-*` are discovered as-is.
       `claude plugin validate .` passes; 4 tests in `tests/test_claude_plugin.py`
+- [x] Live test in the owner's client found "command guesses the project by recency" → commands resolve the target
+      and ask (9d11ad4)
+- [x] Self-hosting: this repository runs on its own framework; generated `.devframework/` git-ignored (4024917)
+- [x] Gate speed: `run_unittest.py --jobs auto`, 407 s → 40 s; "Cost of the loop itself" rule in AGENTS.md (v1.2.0)
+- [x] Installer-agent review found the hook executed the opened repo's `navigate.py` → hook runs plugin-owned code
+      only; README "What the Claude Code plugin runs" (v1.2.1)
+- [x] CI green on Python 3.10/3.13 × Windows/Ubuntu (v1.2.2, 5ae2489, 2026-09-23)
+- [x] **Owner's from-scratch install test** 2026-09-23 (v1.2.2, project scope `D:\dftest`): installer review confirmed
+      the hook fix; init asked exactly 2 questions one by one; 48 files, 0 overwritten; hostcheck 0 conflicts on 107
+      files; doctor READY; finish PASSED 1 test; 20 tool calls, 222 s incl. answers. Findings → items 43–46 and v1.2.3
+- [ ] Reduce the plugin payload: evals/ and docs/ are not needed by consumers
 - [ ] Evals S1–S3 in Claude Code (same fixtures, same prompts, measure from the Claude session log)
 - [x] README host matrix: Hermes / Claude Code / any agent with a shell
 
 **Acceptance:** S2 passes in Claude Code with the same quality columns; brief appears without a call.
 
-### 4. Cursor and Codex via skills only
+### 4. Codex, Cursor, OpenCode
 
-- [ ] Confirm both load `skills/df-*/SKILL.md` unchanged (agentskills.io); note any frontmatter differences
+Plan with researched host facts: [HOSTS_PLAN_2026-09-23.md](HOSTS_PLAN_2026-09-23.md) (supersedes "skills only").
+
+- [ ] Confirm each host loads `skills/df-*/SKILL.md` unchanged (agentskills.io); note any frontmatter differences
 - [ ] Smoke S1 in each (no measurement harness yet — record calls by hand)
 
 **Acceptance:** one paragraph per host in README saying what was verified.
@@ -120,6 +133,13 @@ any of the above.
 
 ## Handoff — update at every portion boundary and provider switch
 
+### 2026-09-23 (written by navigate.py handoff)
+- Branch/commit: main @ 5ae2489; uncommitted: 0 file(s)
+- Open items: 17; next: [8] Eval REPORT template gets the 🛠️ Tech / 💬 Message shape itself (eval defect found in the clean run)
+- doctor: READY (structure/configuration; tests not run — run `check.py finish`)
+- Note: 2026-09-23: CI GREEN on all 4 jobs (py3.10/3.13 x win/ubuntu) at 5ae2489. v1.2.2 = hook runs plugin-owned navigate.py (no code from the opened repo), README 'What the Claude Code plugin runs', SyntaxWarning fix; CI fixes: Linux fixture cleanup, py3.12+ exit 5, links into the git-ignored .devframework/ filtered by resolved path. Next: owner's from-scratch Claude Code install test — restart prompt A in a NEW session (the paused session reviewed the stale 1.2.0), then prompt B; prompts in D:/DEV/Hermes/dftest-prompts/INSTALL_CLAUDE_CODE.md.
+
+
 ### 2026-09-22 (written by navigate.py handoff)
 - Branch/commit: main @ 1e5f1e5; uncommitted: 0 file(s)
 - Open items: 17; next: [8] Eval REPORT template gets the 🛠️ Tech / 💬 Message shape itself (eval defect found in the clean run)
@@ -150,5 +170,12 @@ any of the above.
 
 - [ ] Lite profile as the default for novices (cuts 5 of 9 documents)
 - [ ] GUIDE split of the templates
-- [ ] Public repository name and the moment of the first push
-- [ ] Release discipline for Claude Code: bump VERSION + both manifests, then `claude plugin tag` (consumers only see a change when the version moves)
+- [x] Public repository name and the moment of the first push
+- [x] Release discipline for Claude Code: bump VERSION + both manifests, then `claude plugin tag` (consumers only see a change when the version moves)
+- [x] README headline is confounded: skills baseline ran on grok-4.6, plugin on gpt-5.6-terra (found by the installer agent 2026-09-23) — state it next to 0.33–0.55x, then re-run both variants on one model
+- [x] README 'Plugin or just the framework': the framework works without the plugin (AGENTS.md already says run the brief first); the plugin adds the automatic brief, short commands, one-command update
+- [x] Hook and commands walk up to any parent with `.devframework/` — stop at the first git root, so a framework installed in `D:\DEV` never leaks into every sub-project
+- [ ] Test finding 2026-09-23: pytest-style tests are invisible to run_unittest (vibe-coders mostly write pytest) — decide: stdlib junit-xml adapter run_pytest.py, or document only (done in 1.2.3)
+- [ ] Test finding: a 3-line library got 48 files, 9 reliability recipes and a requests/second worked example — evidence for the lite-profile decision; skip the cost example when the scale unit is not traffic
+- [ ] Test finding: .hermes.md installed for a Claude Code user — host-aware install (hosts plan, phase 0)
+- [ ] Test finding: hostcheck does not see settings.json hooks that block tool calls (GateGuard blocked twice) — list them as informational

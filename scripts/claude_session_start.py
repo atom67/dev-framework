@@ -24,6 +24,8 @@ def project_root() -> Path | None:
     for candidate in (start, *start.parents):
         if (candidate / ".devframework" / "navigate.py").is_file():
             return candidate
+        if (candidate / ".git").exists():  # the project ends at its git root: a parent's framework is not ours
+            return None
     return None
 
 

@@ -11,7 +11,7 @@ UC = """
 
 #### UC-101 — Add a note
 - **Trigger:** Interactive
-- **Test:** covered — `tests/test_a.py::T.test_add`
+- **Test:** `covered` — `tests/test_a.py::T.test_add`
 
 #### UC-102 — List notes
 - **Trigger:** Interactive

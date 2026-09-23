@@ -154,7 +154,7 @@ def brief(root: Path) -> str:
     else:
         out.append("git: no repository (finish/commit-check need one)")
     uc = [(i, t, field(b, "Test")) for _, i, t, b in blocks(root) if i.startswith("UC-")]
-    gaps = [i for i, _, test in uc if not test.lower().startswith("covered")]
+    gaps = [i for i, _, test in uc if not test.lstrip("`*_ ").lower().startswith("covered")]  # markdown emphasis allowed
     out.append(f"use cases: {len(uc)}" + (f", without covering test: {', '.join(gaps[:8])}" + (" …" if len(gaps) > 8 else "") if gaps else ""))
     ke = [(i, t) for r, i, t, b in blocks(root) if i.startswith("KE-") and not field(b, "Status").lower().startswith("fixed")]
     out.append(f"open known errors: {len(ke)}" + ("".join(f"\n  {i} — {t}" for i, t in ke[:6]) if ke else ""))
@@ -222,7 +222,8 @@ doctor  = structure + configuration. READY needs: every framework file present; 
           `**Test:**` field and a row in the traceability table; SET/UC citations only to existing ids.
 finish  = doctor + worktree secret heuristic + build (if any) + test + extra checks; argv form, no shell; needs git.
           The test runner writes counted evidence (run_unittest.py does; > 0 tests, skipped <= max_skipped);
-          `--jobs auto` gives it one process per test module.
+          `--jobs auto` gives it one process per test module. It discovers unittest-style tests (TestCase
+          classes) only: plain pytest functions are invisible to it — convert them or configure another runner.
           Source must not change while it runs. Prints TEST EVIDENCE, SOURCE SHA256, FINISH PASSED; regenerates docs/INDEX.md.
 commit-check = finish + index/worktree parity + staged-blob secret scan. Only before an authorized commit.
 selftest = proves the gates bite: plants a fake UC, a fake secret and a timer in a temp copy and expects failures.

@@ -70,6 +70,8 @@ def finish(root: Path, *, commit: bool = False, verbose: bool = False) -> int:
         print("BUILD NOT APPLICABLE: documented in project.json")
     steps.append(("test", commands["test"]))
     steps.extend((f"check-{number}", cmd) for number, cmd in enumerate(commands["checks"], 1))
+    if any("{python}" in command for _, command in steps):
+        print(f"{{python}} = {sys.executable} (Python {sys.version.split()[0]})")
     counts = None
     for label, command in steps:
         # Only reviewed project commands are allowed. This runner is not a sandbox;

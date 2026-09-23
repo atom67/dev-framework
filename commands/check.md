@@ -5,7 +5,7 @@ allowed-tools: Bash, Read, Edit
 ---
 
 **Which project.** If `$ARGUMENTS` names a path, that is the target. Otherwise the target is the nearest
-directory at or above the working directory that contains `.devframework/`. If there is none, list the immediate
+directory at or above the working directory that contains `.devframework/`, without crossing a git root. If there is none, list the immediate
 subdirectories that contain `.devframework/` and **ask the operator which one** — never pick one by recency or
 by guessing, and never run a framework command in a directory that has no framework installed.
 

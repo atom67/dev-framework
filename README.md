@@ -203,11 +203,22 @@ Checked before you install, so nothing is a surprise:
   into a repository only when you run it, never overwrites existing documents, and has `--dry-run`.
 - **Your tests run only when you ask** (`/dev-framework:check finish`), with the command you configured.
 
+### Plugin or just the framework?
+
+The framework does not need the plugin. `install.py` puts `AGENTS.md` into the project, and it already tells any agent to
+start from `python .devframework/navigate.py brief`; the gates are plain Python scripts in `.devframework/`. The plugin
+adds three conveniences: the brief arrives by itself at session start, short commands (`/dev-framework:nav`, `check`,
+`init`), and install/update with one command. It acts only in projects where you ran `init` — elsewhere the hook is
+silent — and it stops at the project's git root, so a framework in a parent folder never leaks into sub-projects.
+Prefer per-project installs? `claude plugin install dev-framework@dev-framework --scope project` from that project.
+
 ## Hermes plugin
 
-**v1.2.0 (beta; Hermes + Claude Code).** Measured against the same scenarios run without it: 0.33–0.55× the tool calls and
-0.30–0.47× the input tokens, with equal or better documentation quality; host-rule conflicts are surfaced and settled
-by the operator instead of silently fighting the framework. Evidence: [evals/RESULTS.md](evals/RESULTS.md) and the
+**v1.2.3 (beta; Hermes + Claude Code).** On Hermes, the plugin runs of three scenarios used 0.33–0.55× the tool calls and
+0.30–0.47× the input tokens of the same scenarios run with skills only, with equal or better documentation quality.
+**Caveat:** the two variants ran on different models (skills on grok-4.6, plugin on gpt-5.6-terra), so the ratio mixes
+the plugin's effect with the model's; a same-model re-run is planned, and none of it was measured in Claude Code yet.
+Host-rule conflicts are surfaced and settled by the operator instead of silently fighting the framework. Evidence: [evals/RESULTS.md](evals/RESULTS.md) and the
 per-run reports in [evals/runs/](evals/runs/).
 This repository runs on its own framework, and that is how v1.2.0 was found: the finish gate took 6m15s
 because test modules ran one after another. `run_unittest.py --jobs auto` gives each module its own process —

@@ -56,6 +56,15 @@ class SessionStartHookTests(WorkspaceTest):
         self.assertIn("doctor:", run.stdout)
         self.assertLess(len(run.stdout), 4500, "the injected brief stays one screen")
 
+    def test_stops_at_the_git_root(self):
+        """A framework installed in a parent folder must not leak into every git project below it."""
+        self.init()
+        child = self.target / "other-project"
+        (child / ".git").mkdir(parents=True)
+        run = self.run_hook(child)
+        self.assertEqual(run.returncode, 0, run.stderr)
+        self.assertEqual(run.stdout.strip(), "")
+
     def test_never_executes_code_from_the_opened_repository(self):
         """A cloned stranger's repo can ship its own .devframework/navigate.py; the hook must not run it."""
         self.init()
