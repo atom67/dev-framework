@@ -129,6 +129,26 @@ def untested(root: Path) -> list[str]:
             and not field(b, "Test").lstrip("`*_ ").lower().startswith(("covered", "nfv"))]
 
 
+HEALTH = ".devframework/ARCHITECTURE_HEALTHCHECK.md"
+HEALTH_ROW = re.compile(r"^\| ([A-Z]+)-\d+ \|")
+
+
+def health(root: Path, areas: str) -> str:
+    """Only the healthcheck rows for the areas a task touches (SCOPE always): a few hundred tokens, not the table."""
+    rows = [line for line in read(root, HEALTH).splitlines() if HEALTH_ROW.match(line)]
+    if not rows:
+        raise ValueError(f"{HEALTH} is missing; run the installer with --update")
+    names = list(dict.fromkeys(HEALTH_ROW.match(r)[1] for r in rows))
+    if not areas:
+        return ("areas: " + " ".join(f"{n.lower()}({sum(HEALTH_ROW.match(r)[1] == n for r in rows)})" for n in names) +
+                "\nusage: navigate.py health db,tx,api — prints SCOPE plus those areas")
+    wanted = {"SCOPE"} | {a.strip().upper() for a in areas.split(",") if a.strip()}
+    unknown = wanted - set(names)
+    if unknown:
+        raise ValueError(f"unknown area(s): {', '.join(sorted(unknown)).lower()}; known: {' '.join(names).lower()}")
+    return "\n".join(r for r in rows if HEALTH_ROW.match(r)[1] in wanted)
+
+
 def doctor_line(root: Path) -> str:
     try:
         from verification import doctor
@@ -242,6 +262,7 @@ CONTRACT = """\
 DEV Framework contract (what the gates check). Details: .devframework/VERIFICATION.md; rules: AGENTS.md.
 wip     = `<!-- under-construction: reason (until YYYY-MM-DD) -->` in PROJECT.md or docs/: doctor skips that
           document's checks and names it every run; never secrets, tests or file presence; expires on the date.
+health  = `navigate.py health db,api,...` before designing or debugging; name the rule ids in the plan.
 testing = `testing` in project.json: lean (one scenario test per user promise, suite < 1 min) or advanced
           (unit + integration + e2e, staging; commit-check refuses a UC `gap`); AGENTS.md §4.
 kind    = product (this contract). A tool or an exploration prints its own; promote with --update --kind.
@@ -342,6 +363,7 @@ KIND_CONTRACT = {
 DEV Framework contract for a TOOL (what the gates check). Rules: AGENTS.md.
 wip     = `<!-- under-construction: reason (until YYYY-MM-DD) -->` in PROJECT.md or docs/: doctor skips that
           document's checks and names it every run; never secrets, tests or file presence; expires on the date.
+health  = `navigate.py health db,api,...` before designing or debugging; name the rule ids in the plan.
 testing = `testing` in project.json: lean (one scenario test per user promise, suite < 1 min) or advanced
           (unit + integration + e2e, staging; commit-check refuses a UC `gap`); AGENTS.md §4.
 doctor  = structure + configuration. READY needs: PROJECT.md and docs/GUIDE.html without `TODO(project):`
@@ -356,6 +378,7 @@ Grow into a product: install.py --update --kind product --scale "<target>" (adds
 DEV Framework contract for an EXPLORATION (what the gates check). Rules: AGENTS.md.
 wip     = `<!-- under-construction: reason (until YYYY-MM-DD) -->` in PROJECT.md or docs/: doctor skips that
           document's checks and names it every run; never secrets, tests or file presence; expires on the date.
+health  = `navigate.py health db,api,...` before designing or debugging; name the rule ids in the plan.
 testing = `testing` in project.json: lean (one scenario test per user promise, suite < 1 min) or advanced
           (unit + integration + e2e, staging; commit-check refuses a UC `gap`); AGENTS.md §4.
 doctor  = structure + configuration. READY needs: PROJECT.md without `TODO(project):` (intent, open questions).
@@ -374,6 +397,8 @@ def main() -> int:
     f = sub.add_parser("find"); f.add_argument("query")
     sub.add_parser("index")
     sub.add_parser("contract")
+    hc = sub.add_parser("health", help="architecture healthcheck rows for the areas a task touches")
+    hc.add_argument("areas", nargs="?", default="", help="comma-separated, e.g. db,tx,api (SCOPE always)")
     c = sub.add_parser("checklist"); c.add_argument("action", choices=["new", "add", "tick", "show", "archive"])
     c.add_argument("slug", nargs="?", default=""); c.add_argument("text", nargs="?", default="")
     h = sub.add_parser("handoff"); h.add_argument("slug"); h.add_argument("--note", default="")
@@ -390,6 +415,8 @@ def main() -> int:
         elif args.command == "contract":
             from verification import installed_kind
             print(KIND_CONTRACT.get(installed_kind(root), CONTRACT))
+        elif args.command == "health":
+            print(health(root, args.areas))
         elif args.command == "checklist":
             print(checklist(root, args.action, args.slug, args.text))
         elif args.command == "handoff":

@@ -20,6 +20,13 @@
 
 ## Next
 
+- **Idea (operator, 2026-09-23): a separate repository for AI agents, NOT part of DEV Framework.** It would hold
+  the human → agent → agent flow (an orchestrating agent directing an engineer agent that builds production
+  agents), the engineer's known-errors memory, plan-review protocol and consultation log. Research to start
+  from: `D:\DEV\Hermes\docs\research\HUMAN_AGENT_AGENT_FLOW_2026-09-23.md`. DEV Framework keeps only what a
+  person needs to build an agent: `template/.devframework/agents/` (guidelines, agent card, eval set, retirement).
+- Host adapters Codex → Cursor → OpenCode — deferred by the operator 2026-09-23. Plan and decisions
+  (D1 done, D2 cancelled, D3 project-local JS for OpenCode): [HOSTS_PLAN_2026-09-23.md](HOSTS_PLAN_2026-09-23.md) §3–§5.
 - Acceptance follows second-review evidence, then authorized commit/push and hosted CI.
 
 ## Recently finished

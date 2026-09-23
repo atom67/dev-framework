@@ -104,6 +104,11 @@ authority limits as this protocol, and no commit/push/deploy. The parent merges
 results, checks contradictions, and remains accountable to the operator. Sequential
 execution of independent work is a planning defect, not caution.
 
+**Architecture healthcheck.** Before laying down the architecture of a feature, or before debugging one, run
+`python .devframework/navigate.py health <areas>` for the areas it touches (db, tx, api, ui, bulk, job, cfg,
+dep, ver, sec, llm; SCOPE always comes along) and name the rule ids that apply in the plan. Breaking one is
+allowed only with the reason written next to it. Full table: [.devframework/ARCHITECTURE_HEALTHCHECK.md](.devframework/ARCHITECTURE_HEALTHCHECK.md).
+
 If the work still does not fit in **one iteration**, write one checklist from
 [the template](docs/CHECKLIST_TEMPLATE.md) **before the first code change**. Keep it
 the single living plan. At the **end of every reply to the operator**, copy that
@@ -280,5 +285,7 @@ Do not turn read failures into first-run defaults or make restarting an infinite
 
 Use the [recipes](.devframework/patterns/README.md) for outbox delivery, configuration,
 crash recovery, stale work, evolution, entry-point guards, performance and sync semantics.
+Building an AI agent (a bot, an assistant, a scheduled LLM job): read the
+[agent guidelines](.devframework/agents/README.md) first and keep one agent card per agent.
 Record a stable known-error ID near
 non-obvious defences so a later refactor can recover their reason.
