@@ -67,6 +67,22 @@ class SnapshotFinishTests(WorkspaceTest):
         self.assertEqual(run.returncode, 1)
         self.assertIn("test_beta.py", run.stdout + run.stderr)
 
+    def test_pytest_adapter_turns_junit_totals_into_evidence(self):
+        """run_pytest.py: a stub `pytest` in the project stands in for the real one, so CI needs no pytest install."""
+        self.write("pytest/__init__.py", "")  # a regular package, or an installed real pytest would win the import
+        self.write("pytest/__main__.py", (
+            "import pathlib, sys\n"
+            "out = next(a.split('=', 1)[1] for a in sys.argv if a.startswith('--junitxml='))\n"
+            "fail = pathlib.Path('stub_fail').exists()\n"
+            "pathlib.Path(out).write_text(f'<testsuites><testsuite tests=\"3\" failures=\"{int(fail)}\" errors=\"0\" skipped=\"0\"/></testsuites>')\n"
+            "sys.exit(1 if fail else 0)\n"))
+        self.configure_command(["{python}", "-B", ".devframework/run_pytest.py"])
+        run = self.checker("finish")
+        self.assertEqual(run.returncode, 0, run.stdout + run.stderr)
+        self.assertIn("3 total, 0 skipped", run.stdout)
+        self.write("stub_fail", "")
+        self.assertEqual(self.checker("finish").returncode, 1, "a failing pytest run must fail the gate")
+
     def test_legacy_zero_test_command_is_not_success(self):
         (self.target / "empty_tests").mkdir()
         self.configure_command(["{python}", "-B", "-m", "unittest", "discover", "-s", "empty_tests"])

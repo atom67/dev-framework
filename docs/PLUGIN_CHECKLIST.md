@@ -99,7 +99,7 @@ Plan with researched host facts: [HOSTS_PLAN_2026-09-23.md](HOSTS_PLAN_2026-09-2
 
 ### 5. Public release
 
-- [ ] Operator decisions: lite profile (4 documents) for novices; GUIDE split (agent-facing vs human-facing)
+- [x] Operator decisions: lite profile (4 documents) for novices; GUIDE split (agent-facing vs human-facing) — **decided 2026-09-23 by the operator: no lite profile.** The framework is meant as the minimum viable set for home projects; nothing to cut
 - [ ] Sanitizer/PII pass (evals fixtures, docs, memory references) — nothing personal in the public tree
 - [ ] Push to GitHub; plugin-catalog entry PR in NousResearch/hermes-agent (`plugin-catalog/dev-framework.yaml`,
       40-hex SHA pin, capabilities from `hermes plugins doctor` on upstream main); Discord
@@ -168,14 +168,14 @@ any of the above.
 
 ## Product decisions or external authorization still needed
 
-- [ ] Lite profile as the default for novices (cuts 5 of 9 documents)
+- [x] Lite profile as the default for novices (cuts 5 of 9 documents) — **decided 2026-09-23 by the operator: no lite profile.** The framework is meant as the minimum viable set for home projects; nothing to cut
 - [ ] GUIDE split of the templates
 - [x] Public repository name and the moment of the first push
 - [x] Release discipline for Claude Code: bump VERSION + both manifests, then `claude plugin tag` (consumers only see a change when the version moves)
 - [x] README headline is confounded: skills baseline ran on grok-4.6, plugin on gpt-5.6-terra (found by the installer agent 2026-09-23) — state it next to 0.33–0.55x, then re-run both variants on one model
 - [x] README 'Plugin or just the framework': the framework works without the plugin (AGENTS.md already says run the brief first); the plugin adds the automatic brief, short commands, one-command update
 - [x] Hook and commands walk up to any parent with `.devframework/` — stop at the first git root, so a framework installed in `D:\DEV` never leaks into every sub-project
-- [ ] Test finding 2026-09-23: pytest-style tests are invisible to run_unittest (vibe-coders mostly write pytest) — decide: stdlib junit-xml adapter run_pytest.py, or document only (done in 1.2.3)
-- [ ] Test finding: a 3-line library got 48 files, 9 reliability recipes and a requests/second worked example — evidence for the lite-profile decision; skip the cost example when the scale unit is not traffic
+- [x] Test finding 2026-09-23: pytest-style tests are invisible to run_unittest (vibe-coders mostly write pytest) — decide: stdlib junit-xml adapter run_pytest.py, or document only (done in 1.2.3) → run_pytest.py shipped in 1.2.4
+- [x] Test finding: a 3-line library got 48 files, 9 reliability recipes and a requests/second worked example — evidence for the lite-profile decision → operator decided: no lite profile (2026-09-23)
 - [ ] Test finding: .hermes.md installed for a Claude Code user — host-aware install (hosts plan, phase 0)
 - [ ] Test finding: hostcheck does not see settings.json hooks that block tool calls (GateGuard blocked twice) — list them as informational

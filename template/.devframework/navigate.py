@@ -223,7 +223,7 @@ doctor  = structure + configuration. READY needs: every framework file present; 
 finish  = doctor + worktree secret heuristic + build (if any) + test + extra checks; argv form, no shell; needs git.
           The test runner writes counted evidence (run_unittest.py does; > 0 tests, skipped <= max_skipped);
           `--jobs auto` gives it one process per test module. It discovers unittest-style tests (TestCase
-          classes) only: plain pytest functions are invisible to it — convert them or configure another runner.
+          classes) only. Plain pytest functions: run_pytest.py (same evidence; pytest must be installed).
           Source must not change while it runs. Prints TEST EVIDENCE, SOURCE SHA256, FINISH PASSED; regenerates docs/INDEX.md.
 commit-check = finish + index/worktree parity + staged-blob secret scan. Only before an authorized commit.
 selftest = proves the gates bite: plants a fake UC, a fake secret and a timer in a temp copy and expects failures.

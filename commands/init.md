@@ -24,7 +24,8 @@ Install the DEV Framework into the repository named in `$ARGUMENTS` (default: th
    `--jobs auto` runs one process per test module and is the difference between a 40-second gate and a
    7-minute one — drop it only if the modules share state outside their own fixtures); `docs/USE_CASES.md`
    with one `#### UC-### — title` per user-visible capability, each with a `**Test:**` field and a traceability row.
-   The built-in runner finds unittest-style tests (TestCase classes) only; plain pytest functions are invisible to it.
+   `run_unittest.py` finds unittest-style tests (TestCase classes) only. For plain pytest functions use
+   `["{python}", "-B", ".devframework/run_pytest.py"]` (pytest must be installed; extra args go to pytest, e.g. `-n auto`).
    **Product facts the code cannot show** — who the users are, what problem it solves — come from the operator:
    ask, or write them as `UNCONFIRMED: <your inference>`. Never present an inference from code as a fact.
 5. `/dev-framework:check <TARGET> hostcheck` — host rules that fight the framework. Show the operator the list
