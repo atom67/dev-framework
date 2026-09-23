@@ -228,7 +228,8 @@ def main() -> int:
         return 1
     except (OSError, ValueError, KeyError, TypeError, subprocess.SubprocessError) as error:
         # Avoid dumping config or Git stderr, either of which can contain secrets.
-        print(f"CHECK FAILED ({type(error).__name__}): inspection/execution could not complete", file=sys.stderr)
+        where = f" on {error.filename}" if isinstance(error, OSError) and error.filename else ""  # a path, not content
+        print(f"CHECK FAILED ({type(error).__name__}{where}): inspection/execution could not complete", file=sys.stderr)
         return 1
 
 

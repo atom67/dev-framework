@@ -17,8 +17,9 @@ import sqlite3
 
 from secrets_check import findings
 
-NOISE = re.compile(r"<(system-reminder|local-command-caveat|command-name|command-message|command-args|"
+NOISE = re.compile(r"<(system-reminder|local-command-caveat|command-message|"
                    r"local-command-stdout|task-notification)>.*?</\1>", re.S)
+COMMAND = re.compile(r"<command-(?:name|args)>(.*?)</command-(?:name|args)>", re.S)  # "/cmd args" is what was typed
 HEAD_LINES = 200  # enough of a transcript to find its cwd without reading a long session twice
 
 
@@ -58,8 +59,8 @@ def claude_turns(path: Path, day: date | None = None) -> list[tuple[str, str]]:
                 entry = json.loads(line)
             except ValueError:
                 continue
-            if entry.get("type") not in ("user", "assistant") or entry.get("isSidechain"):
-                continue  # sidechains are subagents; their work shows up as the parent's tool call
+            if entry.get("type") not in ("user", "assistant") or entry.get("isSidechain") or entry.get("isMeta"):
+                continue  # sidechains are subagents; meta entries are expanded slash-command prompts nobody typed
             if day and not str(entry.get("timestamp", "")).startswith(day.isoformat()):
                 continue
             content = (entry.get("message") or {}).get("content")
@@ -68,7 +69,7 @@ def claude_turns(path: Path, day: date | None = None) -> list[tuple[str, str]]:
                 if block.get("type") == "tool_use":
                     tools[block.get("name", "tool")] += 1
                 elif block.get("type") == "text":
-                    text = NOISE.sub("", block.get("text", "")).strip()
+                    text = COMMAND.sub(r"\1 ", NOISE.sub("", block.get("text", ""))).strip()
                     if text:
                         _flush_tools(turns, tools)
                         _merge(turns, "User" if entry["type"] == "user" else "Assistant", text)

@@ -6,7 +6,8 @@ allowed-tools: Bash, Read, Write, Edit, Glob, Grep
 
 Install the DEV Framework into the repository named in `$ARGUMENTS` (default: the current project).
 
-1. Ask the operator, **one question per message**, only what was not given:
+1. Ask the operator, **one question per message**, only what was not given (do not announce a total: how many
+   apply depends on the kind):
    1. the name, as the operator calls it;
    2. the **kind** — what is being built. Recommend one from what you see; the operator decides:
       - `product`: software with users that will grow — the full document set, tests with counted evidence;

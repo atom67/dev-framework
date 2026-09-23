@@ -234,7 +234,7 @@ Prefer per-project installs? `claude plugin install dev-framework@dev-framework 
 
 ## Hermes plugin
 
-**v1.4.0 (beta; Hermes + Claude Code).** On Hermes, the plugin runs of three scenarios used 0.33–0.55× the tool calls and
+**v1.4.1 (beta; Hermes + Claude Code).** On Hermes, the plugin runs of three scenarios used 0.33–0.55× the tool calls and
 0.30–0.47× the input tokens of the same scenarios run with skills only, with equal or better documentation quality.
 **Caveat:** the two variants ran on different models (skills on grok-4.6, plugin on gpt-5.6-terra), so the ratio mixes
 the plugin's effect with the model's; a same-model re-run is planned, and none of it was measured in Claude Code yet.

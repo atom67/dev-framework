@@ -58,4 +58,4 @@ if access is unavailable, record the unverified behaviour and risk in Handoff ab
 - [x] brief lists documents under construction; AGENTS.md rule + contract line
 - [x] transcript.py: dialogue from the Claude Code session JSONL (auto-located by cwd) or Hermes state.db; user/assistant text verbatim, tool calls summarized, system reminders stripped, secrets redacted, only the devlog's day
 - [x] check.py devlog --dialogue auto|none|<file>|hermes[:id]; DEVLOG.md and AGENTS.md say the entry is filled from the log
-- [ ] tests: marker (skip, expiry, framework files not markable); transcript from synthetic Claude JSONL and Hermes db; v1.4.0; gate once; push; CI
+- [x] tests: marker (skip, expiry, framework files not markable); transcript from synthetic Claude JSONL and Hermes db; v1.4.0; gate once; push; CI

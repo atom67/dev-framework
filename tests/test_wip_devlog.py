@@ -52,6 +52,12 @@ class DevlogDialogueTests(WorkspaceTest):
         stamp = TODAY.isoformat() + "T10:00:00Z"
         planted = "gh" + "p_" + "A" * 36  # synthetic, split so the secret gate does not flag this file
         entries = [
+            {"type": "user", "cwd": str(self.target), "timestamp": stamp, "message": {"content":
+                "<command-message>df:init</command-message>\n<command-name>/dev-framework:init</command-name>"}},
+            {"type": "user", "isMeta": True, "cwd": str(self.target), "timestamp": stamp,
+             "message": {"content": [{"type": "text", "text": "EXPANDED COMMAND PROMPT"}]}},
+            {"type": "assistant", "cwd": str(self.target), "timestamp": stamp,
+             "message": {"content": [{"type": "text", "text": "Question 1: the name?"}]}},
             {"type": "user", "cwd": str(self.target), "timestamp": stamp,
              "message": {"content": "<system-reminder>noise</system-reminder>count the words please"}},
             {"type": "assistant", "cwd": str(self.target), "timestamp": stamp,
@@ -70,10 +76,11 @@ class DevlogDialogueTests(WorkspaceTest):
         with mock.patch.dict(os.environ, {"CLAUDE_CONFIG_DIR": str(self.base / "claude")}):
             text, source = transcript.dialogue(self.target, "auto", TODAY)
         self.assertIn("session.jsonl", source)
+        self.assertTrue(text.startswith("**User:** /dev-framework:init\n\n**Assistant:** Question 1"), text[:120])
         self.assertIn("**User:** count the words please", text)
         self.assertIn("[tools: Bash×1]", text)
         self.assertIn("redacted", text)
-        for leaked in ("noise", "hidden", "subagent chatter", planted, "an older day"):
+        for leaked in ("noise", "hidden", "subagent chatter", planted, "an older day", "EXPANDED", "df:init"):
             self.assertNotIn(leaked, text)
 
     def test_hermes_state_db_is_read_only_when_named(self):

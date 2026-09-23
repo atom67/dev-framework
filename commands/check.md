@@ -22,7 +22,8 @@ python <TARGET>/.devframework/hostcheck.py <TARGET>  # host rules that fight the
 
 Rules:
 
-- Child output goes to `<TARGET>/.devframework/last_run.log`; report counts and the first failure, not the whole log.
+- `check.py` writes child output to `<TARGET>/.devframework/last_run.log` itself: run it plainly, never pipe or tee
+  into that file (on Windows the second writer makes the run fail). Report counts and the first failure, not the whole log.
 - `finish` is evidence for the **worktree**, never for a commit; no commit or push without the operator's authorization.
 - `hostcheck` findings are the **operator's** decision — show the list once with the proposed fix per line, wait for
   their answer, edit the host file only with authorization (back it up), then record every line in
