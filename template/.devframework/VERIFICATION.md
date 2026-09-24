@@ -23,7 +23,9 @@ duplicate FR/NFR table definitions in REQUIREMENTS.md, and the use-case catalogu
 USE_CASES.md (unique headings, Test field, traceability rows, SET Enables ranges and
 Preconditions against headings/rows; not whether a Flow names the right store), Claude
 imports and profile routing.
-Archive history and backups are excluded. Fenced examples are excluded from link/ID checks.
+Archive history and backups are excluded. The configured Devlog directory, `docs/devlog` unless
+`project.json` sets another `devlog.dir`, is excluded too: it is a local dialogue record, not a
+product document. `scripts/verify.py` uses the same exclusion. Fenced examples are excluded from link/ID checks.
 Markdown link titles, reference-style links and anchor existence are not fully parsed.
 Schema/version/API-command drift needs a stack-specific check in commands.checks.
 

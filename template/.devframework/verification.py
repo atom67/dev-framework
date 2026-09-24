@@ -72,6 +72,18 @@ def under_construction(relative: str, text: str) -> tuple[str, date | None] | No
         return match[1], None
 
 
+def in_devlog(relative: str, config: dict | None) -> bool:
+    """A Devlog is a local dialogue record, not a product document. FR-015."""
+    raw = "docs/devlog"
+    if isinstance(config, dict):
+        devlog = config.get("devlog")
+        if isinstance(devlog, dict) and isinstance(devlog.get("dir"), str) and devlog["dir"].strip():
+            raw = devlog["dir"]
+    root = raw.replace("\\", "/").strip("/")
+    rel = relative.replace("\\", "/")
+    return rel == root or rel.startswith(root + "/")
+
+
 def testing_note(root: Path) -> str | None:
     """A product installed for tens of thousands of users but set to lean: say so; the operator decides."""
     try:
@@ -321,8 +333,10 @@ def doctor(root: Path) -> dict:
     candidates = [root / "AGENTS.md", root / "PROJECT.md", root / "CLAUDE.md"]
     for folder in (root / "docs", root / ".devframework"):
         for path in folder.rglob("*.md"):
-            if not any(p in ("archive", "backups") for p in path.relative_to(folder).parts):
-                candidates.append(path)
+            relative = path.relative_to(root).as_posix()
+            if any(p in ("archive", "backups") for p in path.relative_to(folder).parts) or in_devlog(relative, config):
+                continue
+            candidates.append(path)
     texts, wip = {}, []
     for path in candidates:
         try:

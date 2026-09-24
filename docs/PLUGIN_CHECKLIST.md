@@ -1,7 +1,8 @@
 # DEV Framework as a product — plugin, hosts, evals
 
 **Started:** 2026-09-21
-**Status:** in progress
+**Status:** historical checklist from the v0.4 plugin build. The package tag is now `dev-framework--v1.6.0`.
+Open items below are not the current release gate.
 
 ## Scope agreed with the operator
 

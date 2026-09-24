@@ -1,8 +1,7 @@
 # PLAN — DEV Framework 0.2
 
-Started: 2026-08-31. Status: hardening verified locally; native provider pilot blocked by access/policy.
-Not committed or published. The earlier 63-test result remains historical evidence, not
-acceptance of the additional work below.
+Started: 2026-08-31. This file is the hardening record from that date, not the status of tag
+`dev-framework--v1.6.0`. The "not published / CI not run" lines below were true for that record.
 
 ## Agreed scope
 

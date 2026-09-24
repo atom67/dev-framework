@@ -75,4 +75,13 @@
   an interrupted run is repeated; replaced files stay in .devframework/backups/.
 - Native handoff pilot is blocked: Claude OAuth expired; Codex read commands denied by
   machine policy; Cursor agent unavailable in inspected CLI. See the evidence report.
-  Hosted Linux/Windows CI remains unexecuted pending accepted commit/push.
+  Hosted CI has since run: on 24 September 2026 the workflow for `9efa0d7` was green on
+  Windows and Ubuntu, Python 3.10 and 3.13. That does not close the native handoff pilot.
+
+## KE-2026-09-24-DEVLOG-SCAN — local Devlog failed the package checks
+
+- Found: 24 September 2026. `doctor` and `scripts/verify.py` treated `docs/devlog/` as product
+  documentation. A local, git-ignored dialogue log with old links failed both checks.
+- Status: fixed in 1.6.1.
+- Verification: `tests/test_gates.py`, `test_a_local_devlog_is_not_product_documentation`.
+  A broken link in a normal doc is still an error. The configured Devlog directory is not.

@@ -1,5 +1,9 @@
 # DEV Framework backlog
 
+Current release record, 24 September 2026: tag `dev-framework--v1.6.0` is on `origin/main`, and CI
+for `9efa0d7` was green. The v0.2 notes below are the 31 August record. They are not the current
+"not published" status.
+
 ## In progress
 
 - DEV Framework as a product (Hermes plugin v0.4.0, host adapters, evals, hostcheck) — authorized

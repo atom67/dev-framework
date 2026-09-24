@@ -21,3 +21,7 @@ quality columns from the agent's final report and a look at the resulting repo.
 Definition of "faster": plugin run ≤ 0.7 × skills run in seconds **and** tool calls, same quality columns.
 Definition of "better thinking": follow-up session reaches its first code edit with fewer tool calls than the
 first-session install step took (agent reads docs instead of re-deriving).
+
+The skills rows in this table, including S3, record grok-4.6. The plugin rows record gpt-5.6-terra.
+A later README sentence said S3 skills also used gpt-5.6-terra. This table does not say that.
+Do not cite the ratios as a same-model result. The input-token ratios quoted elsewhere are not a column here.

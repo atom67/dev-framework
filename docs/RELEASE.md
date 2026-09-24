@@ -14,7 +14,12 @@ only what the release actually changes.
 
 | Component | Version lives in |
 |---|---|
-| ... | ... |
+| Package | `VERSION` |
+| Hermes plugin | `plugin.yaml` |
+| Claude Code plugin | `.claude-plugin/plugin.json` |
+
+These three must stay on the same number. This package has no deployed service. Recovery is
+`git checkout` of the previous tag, then `python -B scripts/verify.py`. There is no runtime to restart.
 
 ## Order
 
@@ -60,15 +65,16 @@ only what the release actually changes.
 
 ## 4. Recovery
 
-The exact commands to restore the previous known-good build, per target. Written before
-they are needed — an outage is not the moment to work them out.
+This package has no service to restart. Recovery is a separate checkout of the previous tag,
+not a command to run in a tree that already has uncommitted work:
 
-Verify schema compatibility and backup restoration as well as the executable rollback.
-Specify who decides to roll back, thresholds/time window and the maximum restart budget.
+```text
+git clone --branch dev-framework--v1.6.0 https://github.com/trenthalden/dev-framework.git dev-framework-rollback
+python -B dev-framework-rollback/scripts/verify.py
+```
 
-```
-...
-```
+Use the tag you are leaving, not a tag guessed from this file, if a newer tag exists.
+The person who published the tag decides whether to roll back. There is no automatic rollback.
 
 ## 5. Final verification
 

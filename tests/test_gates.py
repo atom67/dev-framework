@@ -147,3 +147,28 @@ class GateTests(WorkspaceTest):
         run = self.run_check("finish", root=explore)
         self.assertEqual(run.returncode, 0, run.stdout + run.stderr)
         self.assertIn("behaviour is NOT proven", run.stdout)
+
+    def test_a_local_devlog_is_not_product_documentation(self):
+        self.init()
+        self.configure()
+        self.write("docs/devlog/2026-09-24_notes.md",
+                   "TODO(project): quoted from a dialogue\n"
+                   "[missing](missing.md)\n")
+        self.write("docs/devlog/rework.md",
+                   "<!-- under-construction: storage rework (until 2099-01-01) -->\n")
+        report = doctor(self.target)
+        noise = report["errors"] + report["setup"] + report["warnings"]
+        self.assertFalse(any("docs/devlog" in item.replace("\\", "/") for item in noise), noise)
+        self.assertTrue(report["ready"], noise)
+
+        self.write("docs/NOTES.md", "# Notes\n\n[missing](missing.md)\n")
+        report = doctor(self.target)
+        self.assertTrue(any("docs/NOTES.md" in item.replace("\\", "/") for item in report["errors"]), report["errors"])
+        self.assertFalse(any("docs/devlog" in item.replace("\\", "/") for item in report["errors"]))
+
+        self.write("README.md", "# Fixture\n")
+        import verify
+        from verification import check_links
+        link_errors = [item.replace("\\", "/") for item in verify.doc_link_errors(self.target, check_links)]
+        self.assertTrue(any("docs/NOTES.md" in item for item in link_errors), link_errors)
+        self.assertFalse(any("docs/devlog" in item for item in link_errors), link_errors)

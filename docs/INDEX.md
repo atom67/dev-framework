@@ -22,3 +22,4 @@
 | KE-2026-08-31-KNOWLEDGE | lessons absent from installed projects |  |
 | KE-2026-08-31-UPGRADE | no non-destructive upgrade protocol |  |
 | KE-2026-09-03-USECASE-PADDED-RANGE | unique headings, phantom citations |  |
+| KE-2026-09-24-DEVLOG-SCAN | local Devlog failed the package checks |  |

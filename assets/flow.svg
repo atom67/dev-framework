@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1100" height="180" viewBox="0 0 1100 180" role="img" aria-label="Project files to session brief to doctor to traceability">
+  <rect width="1100" height="180" fill="#1C1917"/>
+  <g font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="16" fill="#FAFAF9" text-anchor="middle">
+    <rect x="24" y="48" width="200" height="72" fill="#292524" stroke="#C026D3" stroke-width="2"/>
+    <text x="124" y="90">Project files</text>
+    <rect x="292" y="48" width="200" height="72" fill="#292524" stroke="#C026D3" stroke-width="2"/>
+    <text x="392" y="90">Session brief</text>
+    <rect x="560" y="48" width="200" height="72" fill="#292524" stroke="#C026D3" stroke-width="2"/>
+    <text x="660" y="90">doctor</text>
+    <rect x="828" y="48" width="248" height="72" fill="#292524" stroke="#C026D3" stroke-width="2"/>
+    <text x="952" y="90">Traceability</text>
+  </g>
+  <g stroke="#C026D3" stroke-width="2" fill="#C026D3">
+    <line x1="224" y1="84" x2="284" y2="84"/>
+    <polygon points="284,84 274,79 274,89"/>
+    <line x1="492" y1="84" x2="552" y2="84"/>
+    <polygon points="552,84 542,79 542,89"/>
+    <line x1="760" y1="84" x2="820" y2="84"/>
+    <polygon points="820,84 810,79 810,89"/>
+  </g>
+</svg>

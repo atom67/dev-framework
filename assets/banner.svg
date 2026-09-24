@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1100" height="220" viewBox="0 0 1100 220" role="img" aria-label="DEV Framework">
+  <rect width="1100" height="220" fill="#1C1917"/>
+  <rect x="0" y="0" width="8" height="220" fill="#C026D3"/>
+  <text x="48" y="78" fill="#FAFAF9" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="42" font-weight="700">DEV Framework</text>
+  <text x="48" y="124" fill="#E7E5E4" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="22">Stop vibecoding chaos. Keep architecture, use cases, tests, and docs connected.</text>
+  <text x="48" y="172" fill="#C026D3" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="16">Maintained by Trent Halden</text>
+</svg>

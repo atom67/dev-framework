@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import ast
+import json
 from pathlib import Path
 import subprocess
 import sys
@@ -13,11 +14,19 @@ sys.dont_write_bytecode = True
 def doc_link_errors(root: Path, check_links) -> list[str]:
     """Broken links in maintainer docs. The self-hosted .devframework/ is generated and git-ignored, so a
     fresh clone lacks it; links into it are skipped then. Its source, template/.devframework, is link-checked
-    by the package tests."""
+    by the package tests. A local Devlog is a dialogue record, not maintainer documentation."""
     generated = (root / ".devframework").resolve()
+    config = {}
+    try:
+        config = json.loads((root / ".devframework" / "project.json").read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        pass
+    sys.path.insert(0, str(ROOT / "template" / ".devframework"))
+    from verification import in_devlog
     errors = []
     for path in [root / "README.md", root / "AGENTS.md", *root.joinpath("docs").rglob("*.md")]:
-        if "archive" in path.relative_to(root).parts:
+        relative = path.relative_to(root).as_posix()
+        if "archive" in path.relative_to(root).parts or in_devlog(relative, config):
             continue
         for error in check_links(root, path, path.read_text(encoding="utf-8")):
             target = (path.parent / error.split("link: ", 1)[-1].split("#")[0]).resolve()
