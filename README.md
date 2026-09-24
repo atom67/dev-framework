@@ -9,7 +9,13 @@
 
 **Stop vibecoding chaos with an AI-native workflow that keeps architecture, use cases, tests, and documentation connected.**
 
-That sentence means one thing: the project stores what it is for, what must not break, and how those claims are checked. An agent can read that context instead of reconstructing it from code alone. It does not mean the agent may change the project without a person accepting the result.
+## Why this exists
+
+An agent that sees only the current code spends the next session recovering decisions that were already made. The goal of DEV Framework is to recreate the order in the diagram: read the prepared documents, develop, prove the change with tests, deliver, and crystallize what changed. The next session starts from that record instead of reconstructing it.
+
+![Development cycle](assets/development-cycle.svg)
+
+The project stores what it is for, what must not break, and how those claims are checked. An agent can read that context instead of reconstructing it from code alone. It does not mean the agent may change the project without a person accepting the result. No origin story is claimed beyond the order above.
 
 Two results you can see:
 
@@ -113,10 +119,6 @@ Rules, a project fact file, a use-case catalogue, and small checks. No applicati
 
 `testing` in `.devframework/project.json` is `lean` or `advanced`. Lean is one scenario test per promise a person can see, through the real entry point. Advanced is the stricter set, and `commit-check` refuses a use case that has no test. The installer recommends from kind and scale. The person decides.
 
-![Project files, session brief, doctor, traceability](assets/flow.svg)
-
-The session brief is the agent context for the next session. `doctor` checks that the documents still point at each other. It does not decide whether a sentence is true.
-
 ## Customize safely
 
 These are the supported switches in 1.6.1. There is no switch that turns `doctor` off.
@@ -139,12 +141,6 @@ A profile selects a workflow. It cannot weaken the checks. Per-rule on/off switc
 Older Claude commands `/dev-framework:init`, `check`, and `nav` are aliases for one release. Prefer the `df-` names.
 
 Plugins load at process start. The Hermes desktop app needs a restart after enable. The Claude Code hook is silent outside a framework project, and it does not execute code from the repository you opened.
-
-## Why this exists
-
-An agent that sees only the current code spends the next session recovering decisions that were already made. The documents and the check are there so the next session can start from those decisions and can see when they no longer match.
-
-No origin story is claimed beyond that.
 
 ## Limits
 

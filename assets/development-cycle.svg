@@ -1,0 +1,92 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1080" viewBox="0 0 1600 1080">
+<rect width="1600" height="1080" fill="#101612"/>
+<rect x="0" y="0" width="1600" height="8" fill="#7DCEA0"/>
+<text x="36" y="42" fill="#7DCEA0" font-family="Segoe UI, Segoe UI Emoji, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" text-anchor="start">DEV FRAMEWORK</text>
+<text x="36" y="86" fill="#E7F6EA" font-family="Segoe UI, Segoe UI Emoji, Helvetica, Arial, sans-serif" font-size="36" font-weight="700" text-anchor="start">Development cycle</text>
+<text x="36" y="116" fill="#E7F6EA" font-family="Segoe UI, Segoe UI Emoji, Helvetica, Arial, sans-serif" font-size="18" font-weight="500" text-anchor="start">The next session reads what the previous one wrote.</text>
+<rect x="28" y="132" width="230" height="108" fill="#17211B" stroke="#243028"/>
+<path d="M 28 148 L 28 132 L 44 132" fill="none" stroke="#7DCEA0" stroke-width="2.5"/><path d="M 242 132 L 258 132 L 258 148" fill="none" stroke="#7DCEA0" stroke-width="2.5"/><path d="M 28 224 L 28 240 L 44 240" fill="none" stroke="#7DCEA0" stroke-width="2.5"/><path d="M 242 240 L 258 240 L 258 224" fill="none" stroke="#7DCEA0" stroke-width="2.5"/>
+<text x="46" y="174" fill="#E7F6EA" font-family="Segoe UI, Segoe UI Emoji, Helvetica, Arial, sans-serif" font-size="22" font-weight="400" text-anchor="start">📋</text>
+<text x="82" y="174" fill="#E7F6EA" font-family="Segoe UI, Segoe UI Emoji, Helvetica, Arial, sans-serif" font-size="22" font-weight="700" text-anchor="start">Requirements</text>
+<rect x="284" y="132" width="230" height="108" fill="#17211B" stroke="#243028"/>
+<path d="M 284 148 L 284 132 L 300 132" fill="none" stroke="#7DCEA0" stroke-width="2.5"/><path d="M 498 132 L 514 132 L 514 148" fill="none" stroke="#7DCEA0" stroke-width="2.5"/><path d="M 284 224 L 284 240 L 300 240" fill="none" stroke="#7DCEA0" stroke-width="2.5"/><path d="M 498 240 L 514 240 L 514 224" fill="none" stroke="#7DCEA0" stroke-width="2.5"/>
+<text x="302" y="174" fill="#E7F6EA" font-family="Segoe UI, Segoe UI Emoji, Helvetica, Arial, sans-serif" font-size="22" font-weight="400" text-anchor="start">📖</text>
+<text x="338" y="174" fill="#E7F6EA" font-family="Segoe UI, Segoe UI Emoji, Helvetica, Arial, sans-serif" font-size="22" font-weight="700" text-anchor="start">Read docs</text>
+<text x="302" y="210" fill="#E7F6EA" font-family="Segoe UI, Segoe UI Emoji, Helvetica, Arial, sans-serif" font-size="15" font-weight="500" text-anchor="start">navigate.py brief</text>
+<line x1="261" y1="174" x2="266" y2="174" stroke="#7DCEA0" stroke-width="2.5"/>
+<polygon points="282,174 266,166 266,182" fill="#7DCEA0"/>
+<rect x="540" y="132" width="230" height="108" fill="#17211B" stroke="#243028"/>
+<path d="M 540 148 L 540 132 L 556 132" fill="none" stroke="#7DCEA0" stroke-width="2.5"/><path d="M 754 132 L 770 132 L 770 148" fill="none" stroke="#7DCEA0" stroke-width="2.5"/><path d="M 540 224 L 540 240 L 556 240" fill="none" stroke="#7DCEA0" stroke-width="2.5"/><path d="M 754 240 L 770 240 L 770 224" fill="none" stroke="#7DCEA0" stroke-width="2.5"/>
+<text x="558" y="174" fill="#E7F6EA" font-family="Segoe UI, Segoe UI Emoji, Helvetica, Arial, sans-serif" font-size="22" font-weight="400" text-anchor="start">🛠</text>
+<text x="594" y="174" fill="#E7F6EA" font-family="Segoe UI, Segoe UI Emoji, Helvetica, Arial, sans-serif" font-size="22" font-weight="700" text-anchor="start">Develop</text>
+<text x="558" y="210" fill="#E7F6EA" font-family="Segoe UI, Segoe UI Emoji, Helvetica, Arial, sans-serif" font-size="15" font-weight="500" text-anchor="start">check.py doctor</text>
+<line x1="517" y1="174" x2="522" y2="174" stroke="#7DCEA0" stroke-width="2.5"/>
+<polygon points="538,174 522,166 522,182" fill="#7DCEA0"/>
+<rect x="796" y="132" width="230" height="108" fill="#17211B" stroke="#243028"/>
+<path d="M 796 148 L 796 132 L 812 132" fill="none" stroke="#7DCEA0" stroke-width="2.5"/><path d="M 1010 132 L 1026 132 L 1026 148" fill="none" stroke="#7DCEA0" stroke-width="2.5"/><path d="M 796 224 L 796 240 L 812 240" fill="none" stroke="#7DCEA0" stroke-width="2.5"/><path d="M 1010 240 L 1026 240 L 1026 224" fill="none" stroke="#7DCEA0" stroke-width="2.5"/>
+<text x="814" y="174" fill="#E7F6EA" font-family="Segoe UI, Segoe UI Emoji, Helvetica, Arial, sans-serif" font-size="22" font-weight="400" text-anchor="start">🧪</text>
+<text x="850" y="174" fill="#E7F6EA" font-family="Segoe UI, Segoe UI Emoji, Helvetica, Arial, sans-serif" font-size="22" font-weight="700" text-anchor="start">Autotests</text>
+<text x="814" y="210" fill="#E7F6EA" font-family="Segoe UI, Segoe UI Emoji, Helvetica, Arial, sans-serif" font-size="15" font-weight="500" text-anchor="start">check.py finish</text>
+<line x1="773" y1="174" x2="778" y2="174" stroke="#7DCEA0" stroke-width="2.5"/>
+<polygon points="794,174 778,166 778,182" fill="#7DCEA0"/>
+<rect x="1052" y="132" width="230" height="108" fill="#17211B" stroke="#243028"/>
+<path d="M 1052 148 L 1052 132 L 1068 132" fill="none" stroke="#7DCEA0" stroke-width="2.5"/><path d="M 1266 132 L 1282 132 L 1282 148" fill="none" stroke="#7DCEA0" stroke-width="2.5"/><path d="M 1052 224 L 1052 240 L 1068 240" fill="none" stroke="#7DCEA0" stroke-width="2.5"/><path d="M 1266 240 L 1282 240 L 1282 224" fill="none" stroke="#7DCEA0" stroke-width="2.5"/>
+<text x="1070" y="174" fill="#E7F6EA" font-family="Segoe UI, Segoe UI Emoji, Helvetica, Arial, sans-serif" font-size="22" font-weight="400" text-anchor="start">📦</text>
+<text x="1106" y="174" fill="#E7F6EA" font-family="Segoe UI, Segoe UI Emoji, Helvetica, Arial, sans-serif" font-size="22" font-weight="700" text-anchor="start">Deliver</text>
+<text x="1070" y="210" fill="#E7F6EA" font-family="Segoe UI, Segoe UI Emoji, Helvetica, Arial, sans-serif" font-size="15" font-weight="500" text-anchor="start">commit-check</text>
+<line x1="1029" y1="174" x2="1034" y2="174" stroke="#7DCEA0" stroke-width="2.5"/>
+<polygon points="1050,174 1034,166 1034,182" fill="#7DCEA0"/>
+<rect x="1308" y="132" width="230" height="108" fill="#17211B" stroke="#243028"/>
+<path d="M 1308 148 L 1308 132 L 1324 132" fill="none" stroke="#7DCEA0" stroke-width="2.5"/><path d="M 1522 132 L 1538 132 L 1538 148" fill="none" stroke="#7DCEA0" stroke-width="2.5"/><path d="M 1308 224 L 1308 240 L 1324 240" fill="none" stroke="#7DCEA0" stroke-width="2.5"/><path d="M 1522 240 L 1538 240 L 1538 224" fill="none" stroke="#7DCEA0" stroke-width="2.5"/>
+<text x="1326" y="174" fill="#E7F6EA" font-family="Segoe UI, Segoe UI Emoji, Helvetica, Arial, sans-serif" font-size="22" font-weight="400" text-anchor="start">💎</text>
+<text x="1362" y="174" fill="#E7F6EA" font-family="Segoe UI, Segoe UI Emoji, Helvetica, Arial, sans-serif" font-size="22" font-weight="700" text-anchor="start">Crystallize</text>
+<text x="1326" y="210" fill="#E7F6EA" font-family="Segoe UI, Segoe UI Emoji, Helvetica, Arial, sans-serif" font-size="15" font-weight="500" text-anchor="start">navigate.py handoff</text>
+<line x1="1285" y1="174" x2="1290" y2="174" stroke="#7DCEA0" stroke-width="2.5"/>
+<polygon points="1306,174 1290,166 1290,182" fill="#7DCEA0"/>
+<path d="M 1520 240 L 1520 430 " fill="none" stroke="#7DCEA0" stroke-width="2.5"/>
+<path d="M 1233.0 555.0 L 607.0 555.0" fill="none" stroke="#7DCEA0" stroke-width="2.5"/>
+<polygon points="591.0,555.0 607.0,546.0 607.0,564.0" fill="#7DCEA0"/>
+<text x="911.0" y="541.0" fill="#E7F6EA" font-family="Segoe UI, Segoe UI Emoji, Helvetica, Arial, sans-serif" font-size="16" font-weight="700" text-anchor="middle">next session</text>
+<path d="M 302 430 L 302 258" fill="none" stroke="#7DCEA0" stroke-width="2.5"/>
+<polygon points="302,242 293,258 311,258" fill="#7DCEA0"/>
+<rect x="209.0" y="430" width="380" height="250" fill="#17211B" stroke="#243028"/>
+<path d="M 209.0 446 L 209.0 430 L 225.0 430" fill="none" stroke="#7DCEA0" stroke-width="2.5"/><path d="M 573.0 430 L 589.0 430 L 589.0 446" fill="none" stroke="#7DCEA0" stroke-width="2.5"/><path d="M 209.0 664 L 209.0 680 L 225.0 680" fill="none" stroke="#7DCEA0" stroke-width="2.5"/><path d="M 573.0 680 L 589.0 680 L 589.0 664" fill="none" stroke="#7DCEA0" stroke-width="2.5"/>
+<text x="231.0" y="470" fill="#7DCEA0" font-family="Segoe UI, Segoe UI Emoji, Helvetica, Arial, sans-serif" font-size="22" font-weight="700" text-anchor="start">Reads first</text>
+<text x="231.0" y="512" fill="#E7F6EA" font-family="Segoe UI, Segoe UI Emoji, Helvetica, Arial, sans-serif" font-size="18" font-weight="650" text-anchor="start">AGENTS   how to work</text>
+<text x="231.0" y="542" fill="#E7F6EA" font-family="Segoe UI, Segoe UI Emoji, Helvetica, Arial, sans-serif" font-size="18" font-weight="650" text-anchor="start">PROJECT   project facts</text>
+<text x="231.0" y="572" fill="#E7F6EA" font-family="Segoe UI, Segoe UI Emoji, Helvetica, Arial, sans-serif" font-size="18" font-weight="650" text-anchor="start">KNOWN_ERRORS   known failures</text>
+<text x="231.0" y="602" fill="#E7F6EA" font-family="Segoe UI, Segoe UI Emoji, Helvetica, Arial, sans-serif" font-size="18" font-weight="650" text-anchor="start">REQUIREMENTS   what was promised</text>
+<text x="231.0" y="632" fill="#E7F6EA" font-family="Segoe UI, Segoe UI Emoji, Helvetica, Arial, sans-serif" font-size="18" font-weight="650" text-anchor="start">BACKLOG   work in progress</text>
+<rect x="1233.0" y="430" width="380" height="250" fill="#17211B" stroke="#243028"/>
+<path d="M 1233.0 446 L 1233.0 430 L 1249.0 430" fill="none" stroke="#7DCEA0" stroke-width="2.5"/><path d="M 1597.0 430 L 1613.0 430 L 1613.0 446" fill="none" stroke="#7DCEA0" stroke-width="2.5"/><path d="M 1233.0 664 L 1233.0 680 L 1249.0 680" fill="none" stroke="#7DCEA0" stroke-width="2.5"/><path d="M 1597.0 680 L 1613.0 680 L 1613.0 664" fill="none" stroke="#7DCEA0" stroke-width="2.5"/>
+<text x="1255.0" y="470" fill="#7DCEA0" font-family="Segoe UI, Segoe UI Emoji, Helvetica, Arial, sans-serif" font-size="22" font-weight="700" text-anchor="start">Writes back</text>
+<text x="1255.0" y="512" fill="#E7F6EA" font-family="Segoe UI, Segoe UI Emoji, Helvetica, Arial, sans-serif" font-size="18" font-weight="650" text-anchor="start">USE_CASES   path and test</text>
+<text x="1255.0" y="542" fill="#E7F6EA" font-family="Segoe UI, Segoe UI Emoji, Helvetica, Arial, sans-serif" font-size="18" font-weight="650" text-anchor="start">ARCHITECTURE   structure</text>
+<text x="1255.0" y="572" fill="#E7F6EA" font-family="Segoe UI, Segoe UI Emoji, Helvetica, Arial, sans-serif" font-size="18" font-weight="650" text-anchor="start">BACKLOG   next step</text>
+<text x="1255.0" y="602" fill="#E7F6EA" font-family="Segoe UI, Segoe UI Emoji, Helvetica, Arial, sans-serif" font-size="18" font-weight="650" text-anchor="start">KNOWN_ERRORS   new limit</text>
+<text x="1255.0" y="632" fill="#E7F6EA" font-family="Segoe UI, Segoe UI Emoji, Helvetica, Arial, sans-serif" font-size="18" font-weight="650" text-anchor="start">INDEX   doc map</text>
+<rect x="28" y="710" width="1544" height="300" fill="#17211B" stroke="#243028"/>
+<path d="M 28 728 L 28 710 L 46 710" fill="none" stroke="#7DCEA0" stroke-width="2.5"/><path d="M 1554 710 L 1572 710 L 1572 728" fill="none" stroke="#7DCEA0" stroke-width="2.5"/><path d="M 28 992 L 28 1010 L 46 1010" fill="none" stroke="#7DCEA0" stroke-width="2.5"/><path d="M 1554 1010 L 1572 1010 L 1572 992" fill="none" stroke="#7DCEA0" stroke-width="2.5"/>
+<text x="52" y="754" fill="#E7F6EA" font-family="Segoe UI, Segoe UI Emoji, Helvetica, Arial, sans-serif" font-size="24" font-weight="700" text-anchor="start">docs/   full product set</text>
+<text x="520" y="754" fill="#E7F6EA" font-family="Segoe UI, Segoe UI Emoji, Helvetica, Arial, sans-serif" font-size="18" font-weight="500" text-anchor="start">All of these are .md files.</text>
+<text x="52" y="810" fill="#E7F6EA" font-family="Segoe UI, Segoe UI Emoji, Helvetica, Arial, sans-serif" font-size="18" font-weight="700" text-anchor="start">REQUIREMENTS</text>
+<text x="52" y="838" fill="#E7F6EA" font-family="Segoe UI, Segoe UI Emoji, Helvetica, Arial, sans-serif" font-size="16" font-weight="500" text-anchor="start">promised behaviour</text>
+<text x="356" y="810" fill="#E7F6EA" font-family="Segoe UI, Segoe UI Emoji, Helvetica, Arial, sans-serif" font-size="18" font-weight="700" text-anchor="start">USE_CASES</text>
+<text x="356" y="838" fill="#E7F6EA" font-family="Segoe UI, Segoe UI Emoji, Helvetica, Arial, sans-serif" font-size="16" font-weight="500" text-anchor="start">one path, one test</text>
+<text x="660" y="810" fill="#E7F6EA" font-family="Segoe UI, Segoe UI Emoji, Helvetica, Arial, sans-serif" font-size="18" font-weight="700" text-anchor="start">ARCHITECTURE</text>
+<text x="660" y="838" fill="#E7F6EA" font-family="Segoe UI, Segoe UI Emoji, Helvetica, Arial, sans-serif" font-size="16" font-weight="500" text-anchor="start">components and flow</text>
+<text x="964" y="810" fill="#E7F6EA" font-family="Segoe UI, Segoe UI Emoji, Helvetica, Arial, sans-serif" font-size="18" font-weight="700" text-anchor="start">INVARIANTS</text>
+<text x="964" y="838" fill="#E7F6EA" font-family="Segoe UI, Segoe UI Emoji, Helvetica, Arial, sans-serif" font-size="16" font-weight="500" text-anchor="start">must not break</text>
+<text x="1268" y="810" fill="#E7F6EA" font-family="Segoe UI, Segoe UI Emoji, Helvetica, Arial, sans-serif" font-size="18" font-weight="700" text-anchor="start">BACKLOG</text>
+<text x="1268" y="838" fill="#E7F6EA" font-family="Segoe UI, Segoe UI Emoji, Helvetica, Arial, sans-serif" font-size="16" font-weight="500" text-anchor="start">current scope</text>
+<text x="52" y="900" fill="#E7F6EA" font-family="Segoe UI, Segoe UI Emoji, Helvetica, Arial, sans-serif" font-size="18" font-weight="700" text-anchor="start">KNOWN_ERRORS</text>
+<text x="52" y="928" fill="#E7F6EA" font-family="Segoe UI, Segoe UI Emoji, Helvetica, Arial, sans-serif" font-size="16" font-weight="500" text-anchor="start">defects and limits</text>
+<text x="356" y="900" fill="#E7F6EA" font-family="Segoe UI, Segoe UI Emoji, Helvetica, Arial, sans-serif" font-size="18" font-weight="700" text-anchor="start">REGRESSION_TEST</text>
+<text x="356" y="928" fill="#E7F6EA" font-family="Segoe UI, Segoe UI Emoji, Helvetica, Arial, sans-serif" font-size="16" font-weight="500" text-anchor="start">covered risks</text>
+<text x="660" y="900" fill="#E7F6EA" font-family="Segoe UI, Segoe UI Emoji, Helvetica, Arial, sans-serif" font-size="18" font-weight="700" text-anchor="start">RELEASE</text>
+<text x="660" y="928" fill="#E7F6EA" font-family="Segoe UI, Segoe UI Emoji, Helvetica, Arial, sans-serif" font-size="16" font-weight="500" text-anchor="start">ship and rollback</text>
+<text x="964" y="900" fill="#E7F6EA" font-family="Segoe UI, Segoe UI Emoji, Helvetica, Arial, sans-serif" font-size="18" font-weight="700" text-anchor="start">INDEX</text>
+<text x="964" y="928" fill="#E7F6EA" font-family="Segoe UI, Segoe UI Emoji, Helvetica, Arial, sans-serif" font-size="16" font-weight="500" text-anchor="start">rebuilt by finish</text>
+<text x="1268" y="900" fill="#E7F6EA" font-family="Segoe UI, Segoe UI Emoji, Helvetica, Arial, sans-serif" font-size="18" font-weight="700" text-anchor="start">templates</text>
+<text x="1268" y="928" fill="#E7F6EA" font-family="Segoe UI, Segoe UI Emoji, Helvetica, Arial, sans-serif" font-size="16" font-weight="500" text-anchor="start">case, checklist, slice</text>
+</svg>
